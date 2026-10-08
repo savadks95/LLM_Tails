@@ -1,4 +1,9 @@
+<p align="center">
+  <img src="assets/logo.jpg" width="260" alt="LLM_Tails — Futuristic Disciplined Senior Programmer">
+</p>
+
 <h1 align="center">LLM_Tails</h1>
+
 
 <p align="center">
   <em>Understand deeply. Write minimally. Never hallucinate. Stay consistent.</em>
