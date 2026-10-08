@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo.jpg" width="260" alt="LLM_Tails — Futuristic Disciplined Senior Programmer">
+  <img src="assets/banner.jpg" alt="LLM_Tails — Disciplined AI Coding Mode">
 </p>
 
-<h1 align="center">LLM_Tails</h1>
+
 
 
 <p align="center">
