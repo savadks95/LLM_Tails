@@ -25,7 +25,6 @@ If you find LLM_Tails helpful, consider buying me a coffee:
     <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
   </a>
 </p>
----
 
 ## What is this?
 
