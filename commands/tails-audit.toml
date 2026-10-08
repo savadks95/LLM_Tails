@@ -1,0 +1,5 @@
+[command]
+name = "tails-audit"
+description = "Whole-repo audit: over-engineering, hallucination risks, consistency, architecture."
+args_hint = "[target or notes]"
+skill = "tails-audit"

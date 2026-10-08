@@ -1,0 +1,5 @@
+[command]
+name = "tails-review"
+description = "Review the current diff through all four LLM_Tails pillars."
+args_hint = "[target or notes]"
+skill = "tails-review"

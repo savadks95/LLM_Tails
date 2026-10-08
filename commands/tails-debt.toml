@@ -1,0 +1,5 @@
+[command]
+name = "tails-debt"
+description = "Harvest tails: shortcut comments into a tracked debt ledger."
+args_hint = ""
+skill = "tails-debt"

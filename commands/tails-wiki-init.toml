@@ -1,0 +1,5 @@
+[command]
+name = "tails-wiki-init"
+description = "Scaffold a project wiki from the current codebase."
+args_hint = ""
+skill = "tails-wiki-init"

@@ -1,0 +1,5 @@
+[command]
+name = "tails-wiki-lint"
+description = "Health-check the project wiki against current code."
+args_hint = ""
+skill = "tails-wiki-lint"

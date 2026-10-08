@@ -1,0 +1,5 @@
+[command]
+name = "tails-help"
+description = "Quick reference for all LLM_Tails commands and features."
+args_hint = ""
+skill = "tails-help"

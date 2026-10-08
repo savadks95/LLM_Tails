@@ -1,0 +1,36 @@
+{
+  "name": "@savadks95/llm-tails",
+  "version": "1.0.0",
+  "description": "Disciplined AI coding mode. Four pillars: understand first, minimal code, no hallucination, enforce consistency.",
+  "keywords": [
+    "llm",
+    "ai-coding",
+    "prompt-engineering",
+    "code-quality",
+    "anti-hallucination",
+    "consistency"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "savadks95",
+    "url": "https://github.com/savadks95"
+  },
+  "homepage": "https://github.com/savadks95/LLM_Tails",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/savadks95/LLM_Tails.git"
+  },
+  "bugs": {
+    "url": "https://github.com/savadks95/LLM_Tails/issues"
+  },
+  "files": [
+    "AGENTS.md",
+    "hooks/",
+    "skills/",
+    "commands/",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

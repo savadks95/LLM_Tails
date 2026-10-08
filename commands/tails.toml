@@ -1,0 +1,5 @@
+[command]
+name = "tails"
+description = "Set LLM_Tails disciplined mode: lite, full, ultra, or off."
+args_hint = "[lite|full|ultra|off]"
+skill = "tails"

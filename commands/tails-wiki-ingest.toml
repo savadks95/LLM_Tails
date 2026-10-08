@@ -1,0 +1,5 @@
+[command]
+name = "tails-wiki-ingest"
+description = "Ingest a new source into the project wiki."
+args_hint = "[source file or notes]"
+skill = "tails-wiki-ingest"
