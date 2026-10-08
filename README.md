@@ -2,6 +2,20 @@
   <img src="assets/banner.jpg" alt="LLM_Tails — Disciplined AI Coding Mode">
 </p>
 
+## Support
+
+If you find LLM_Tails helpful, consider buying me a coffee:
+
+<p align="center">
+  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
+  <br><br>
+  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
+    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
+  </a>
+</p>
+
+
+
 <p align="center">
   <em>Understand deeply. Write minimally. Never hallucinate. Stay consistent.</em>
 </p>
@@ -137,19 +151,6 @@ It also works with **Caveman** — Caveman shrinks what the agent says, LLM_Tail
 
 LLM_Tails exists to synthesize and extend these two great concepts into a unified, cross-agent ecosystem.
 
-## Support
-
-If you find LLM_Tails helpful, consider buying me a coffee:
-
-<p align="center">
-  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
-  <br><br>
-  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
-    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
-  </a>
-</p>
-
-<script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="MrNotorious" data-color="#FFDD00" data-emoji=""  data-font="Bree" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
 
 ## License
 
