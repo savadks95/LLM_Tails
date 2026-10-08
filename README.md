@@ -14,7 +14,6 @@
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
 </p>
 
----
 ## Support
 
 If you find LLM_Tails helpful, consider buying me a coffee:
