@@ -2,19 +2,6 @@
   <img src="assets/banner.jpg" alt="LLM_Tails — Disciplined AI Coding Mode">
 </p>
 
-## Support
-
-If you find LLM_Tails helpful, consider buying me a coffee:
-
-<p align="center">
-  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
-  <br><br>
-  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
-    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
-  </a>
-</p>
-
-
 
 <p align="center">
   <em>Understand deeply. Write minimally. Never hallucinate. Stay consistent.</em>
@@ -27,6 +14,18 @@ If you find LLM_Tails helpful, consider buying me a coffee:
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
 </p>
 
+---
+## Support
+
+If you find LLM_Tails helpful, consider buying me a coffee:
+
+<p align="center">
+  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
+  <br><br>
+  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
+    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
+  </a>
+</p>
 ---
 
 ## What is this?
