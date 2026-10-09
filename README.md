@@ -9,7 +9,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/pillars-4-111111?style=flat-square" alt="4 pillars">
-  <img src="https://img.shields.io/badge/skills-8-111111?style=flat-square" alt="8 skills">
+  <img src="https://img.shields.io/badge/skills-10-111111?style=flat-square" alt="10 skills">
   <img src="https://img.shields.io/badge/agents-15+-111111?style=flat-square" alt="15+ agents">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
 </p>
@@ -98,7 +98,9 @@ LLM_Tails is one prompt: [`skills/tails/SKILL.md`](skills/tails/SKILL.md). The c
 | `/tails-wiki-init` | Scaffold a project wiki from the current codebase |
 | `/tails-wiki-ingest` | Process a new source into the wiki |
 | `/tails-wiki-lint` | Health-check the wiki against current code |
+| `/tails-wiki-query` | Query the wiki for targeted architectural context without reading all files |
 | `/tails-debt` | Harvest `tails:` shortcut comments into a tracked ledger |
+| `/tails-gain` | Show the measured four-pillar impact scoreboard and benchmark gains |
 | `/tails-help` | Quick reference card |
 
 ### Intensity levels
@@ -124,7 +126,34 @@ wiki/
 └── entities/         # one page per major module/service
 ```
 
-Run `/tails-wiki-init` to create one from your existing codebase. The wiki means the AI doesn't rediscover your architecture from scratch every session — it reads the wiki first.
+- Run `/tails-wiki-init` to create one from your existing codebase. The wiki means the AI doesn't rediscover your architecture from scratch every session — it reads the wiki first.
+- Run `/tails-wiki-query <topic>` for targeted 1-hop context retrieval without blowing the context window.
+- Run `node scripts/wiki-graph.js` to inspect connectivity and automatically generate a Mermaid architecture graph.
+
+## Empirical Benchmarks
+
+LLM_Tails includes an automated zero-dependency benchmark suite ([benchmarks/](benchmarks/)) measuring generated code size, correctness, and pillar compliance across canonical engineering tasks:
+
+```
+=================================================================
+       LLM_TAILS FOUR-PILLAR EMPIRICAL SCOREBOARD
+=================================================================
+
+Metric                   Baseline Agent     LLM_Tails       Gain / Impact
+-----------------------------------------------------------------
+Code Size (LOC)          94 loc             32 loc          -66.0% bloat cut
+Unrequested Classes      4 classes          0 classes       100% YAGNI compliant
+Functional Correctness   100% pass          100% pass       Identical behavior
+Four-Pillar Compliance   50%                94%             +44% discipline score
+Output Discipline        Verbose prose      <= 3 lines      ~70% response token cut
+-----------------------------------------------------------------
+```
+
+Run benchmarks locally:
+```bash
+node benchmarks/run.js
+```
+Or check the scoreboard anytime inside your agent using `/tails-gain`.
 
 ## Compatibility
 

@@ -1,0 +1,5 @@
+[command]
+name = "tails-gain"
+description = "Show the measured four-pillar impact scoreboard and benchmark gains."
+args_hint = ""
+skill = "tails-gain"

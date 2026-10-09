@@ -59,6 +59,8 @@ End with: `<N> issues found. <M> stale, <K> contradictions, <J> orphans, <I> gap
 
 Clean wiki: `Wiki is healthy. No issues found.`
 
+Tip: Run `node scripts/wiki-graph.js` to inspect connectivity and visualize the graph in Mermaid.
+
 ## Boundaries
 
 Read-only report. Changes nothing. One-shot.

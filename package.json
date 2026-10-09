@@ -23,11 +23,17 @@
   "bugs": {
     "url": "https://github.com/savadks95/LLM_Tails/issues"
   },
+  "scripts": {
+    "bench": "node benchmarks/run.js",
+    "wiki-graph": "node scripts/wiki-graph.js"
+  },
   "files": [
     "AGENTS.md",
     "hooks/",
     "skills/",
     "commands/",
+    "scripts/",
+    "benchmarks/",
     "LICENSE"
   ],
   "publishConfig": {

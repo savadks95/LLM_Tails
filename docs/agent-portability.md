@@ -33,6 +33,8 @@ instructions, keep its copied rule text aligned with `AGENTS.md`.
 - `skills/tails-wiki-init/SKILL.md`: scaffold a project wiki
 - `skills/tails-wiki-ingest/SKILL.md`: ingest sources into the wiki
 - `skills/tails-wiki-lint/SKILL.md`: health-check wiki against code
+- `skills/tails-wiki-query/SKILL.md`: query wiki for targeted architecture context
 - `skills/tails-debt/SKILL.md`: harvest `tails:` shortcuts into a ledger
+- `skills/tails-gain/SKILL.md`: four-pillar impact scoreboard and benchmark gains
 - `skills/tails-help/SKILL.md`: quick reference
 - `AGENTS.md`: compact always-on instruction set for agents without skill support
