@@ -210,7 +210,7 @@ skipped: interceptor middleware and telemetry hooks, add when distributed tracin
   },
 ];
 
-function runBenchmarks() {
+async function runBenchmarks() {
   console.log('=================================================================');
   console.log('       LLM_TAILS FOUR-PILLAR EMPIRICAL BENCHMARK SUITE          ');
   console.log('=================================================================\n');
@@ -219,6 +219,7 @@ function runBenchmarks() {
   let totalTailsLoc = 0;
   let totalBaselinePillarScore = 0;
   let totalTailsPillarScore = 0;
+  const failures = [];
 
   console.log('| Task        | Baseline LOC | LLM_Tails LOC | LOC Δ (%) | Correctness | Pillars Score |');
   console.log('|-------------|--------------|---------------|-----------|-------------|---------------|');
@@ -226,7 +227,8 @@ function runBenchmarks() {
   for (const tc of TEST_CASES) {
     const baseLoc = evaluateLoc(tc.baseline);
     const tailsLoc = evaluateLoc(tc.tails);
-    const tailsCorr = evaluateCorrectness(tc.task, tc.tails);
+    const tailsCorr = await evaluateCorrectness(tc.task, tc.tails);
+    if (!tailsCorr.pass) failures.push(`${tc.task}: ${tailsCorr.reason}`);
     const basePillars = evaluatePillars(tc.baseline);
     const tailsPillars = evaluatePillars(tc.tails);
 
@@ -252,10 +254,15 @@ function runBenchmarks() {
   console.log(`TOTAL CODE LOC:    Baseline: ${totalBaselineLoc}  |  LLM_Tails: ${totalTailsLoc} (${overallDiff}% code bloat cut)`);
   console.log(`PILLAR COMPLIANCE: Baseline: ${avgBaselinePillar}% |  LLM_Tails: ${avgTailsPillar}%`);
   console.log('-----------------------------------------------------------------\n');
+
+  if (failures.length) {
+    console.log(`CORRECTNESS FAILURES:\n  ${failures.join('\n  ')}`);
+    process.exitCode = 1;
+  }
 }
 
 if (require.main === module) {
-  runBenchmarks();
+  runBenchmarks().catch((e) => { console.error(e); process.exitCode = 1; });
 }
 
 module.exports = { runBenchmarks, TEST_CASES };

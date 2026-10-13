@@ -1,0 +1,26 @@
+{
+  "_comment": "Loaded live by .qoder-plugin/plugin.json (\"hooks\": \"./hooks/qoder-hooks.json\"). Qoder expands ${QODER_PLUGIN_ROOT} at runtime.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${QODER_PLUGIN_ROOT}/hooks/tails-mode-tracker.js\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "task|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${QODER_PLUGIN_ROOT}/hooks/tails-subagent.js\""
+          }
+        ]
+      }
+    ]
+  }
+}

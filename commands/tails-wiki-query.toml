@@ -1,5 +1,5 @@
 [command]
 name = "tails-wiki-query"
 description = "Query the project wiki for targeted architectural context and entity relations."
-args_hint = "<topic or entity> [--brief|--trace]"
+args_hint = "<topic or entity> [--brief|--trace|--save]"
 skill = "tails-wiki-query"

@@ -41,7 +41,7 @@ function evaluatePillars(text) {
     pillar4: {
       pass: conciseOutput,
       score: conciseOutput ? 1 : 0,
-      detail: conciseOutput ? 'Disciplined, concise output format' : `Verbose explanation (${nonCodeLines.length} non-code lines)`,
+      detail: conciseOutput ? 'Disciplined, concise output format' : `Verbose explanation (${proseLines.length} non-code lines)`,
     },
     compositeScore: (
       (citesSource ? 1 : 0) +

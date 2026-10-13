@@ -19,9 +19,13 @@ base. The wiki is LLM-maintained: you (the AI) own it, the human reads it.
    files, entry points, and key modules. Build an understanding of what this
    project does, how it's structured, and what its conventions are.
 
-2. **Create the structure:**
+2. **Create the three layers (Karpathy pattern):**
+   - **Layer 1: Raw sources (`raw/`)** — immutable source documents (articles, clips, specs, transcripts).
+   - **Layer 2: The wiki (`wiki/`)** — persistent synthesis and entity pages maintained entirely by the LLM.
+   - **Layer 3: The schema (`AGENTS.md`)** — project rules and conventions guiding the LLM.
 
 ```
+raw/                  # (optional) immutable raw sources, clips, and research inputs
 wiki/
 ├── index.md          # catalog of all wiki pages with links and summaries
 ├── log.md            # chronological record of wiki updates
@@ -29,6 +33,7 @@ wiki/
 ├── architecture.md   # how the code is structured, entry points, data flow
 ├── conventions.md    # naming, file organization, error handling, import style
 ├── dependencies.md   # what's installed, why, what each one does
+├── synthesis/        # persistent compounding query findings and deep analyses
 └── entities/         # one page per major module, service, or component
     └── (created per entity discovered)
 ```
@@ -58,6 +63,7 @@ Each wiki page:
 - Write what you actually found, not what you assume.
 - Mark anything uncertain with `[uncertain]`.
 - The wiki is a snapshot — it will be updated incrementally by future sessions.
+- State vs history: wiki pages are living state (updated in place); `log.md` is history (append-only, past entries never edited — correct with a new entry); `raw/` is immutable.
 - Don't over-wiki: only create pages for concepts/entities that are substantial
   enough to warrant one. A project with 3 files needs 3-4 wiki pages, not 20.
 

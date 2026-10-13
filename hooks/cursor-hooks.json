@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node \"TAILS_DIR/hooks/tails-activate.js\"",
+        "timeout": 5
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "node \"TAILS_DIR/hooks/tails-mode-tracker.js\"",
+        "timeout": 5
+      }
+    ]
+  }
+}

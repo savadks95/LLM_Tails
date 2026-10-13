@@ -25,7 +25,7 @@ Metric                   Baseline Agent     LLM_Tails       Gain / Impact
 -----------------------------------------------------------------
 Code Size (LOC)          94 loc             32 loc          -66.0% bloat cut
 Unrequested Classes      4 classes          0 classes       100% YAGNI compliant
-Functional Correctness   100% pass          100% pass       Identical behavior
+Functional Correctness   (not executed)     100% pass       Real execution in VM
 Four-Pillar Compliance   50%                94%             +44% discipline score
 Output Discipline        Verbose prose      <= 3 lines      ~70% response token cut
 -----------------------------------------------------------------

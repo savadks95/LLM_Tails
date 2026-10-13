@@ -24,6 +24,7 @@ Process a new source and integrate its knowledge into the project wiki.
    ```
    wiki/sources/<source-name>.md
    ```
+   If the source was placed in `raw/` (e.g. `raw/<name>.md`), keep `raw/` completely untouched (immutable source of truth).
    Include: one-paragraph summary, key claims/facts, how it relates to existing
    wiki content, `[[wikilinks]]` to relevant pages.
 
@@ -35,7 +36,7 @@ Process a new source and integrate its knowledge into the project wiki.
 
 5. **Update index.md** — add the new page to the catalog.
 
-6. **Append to log.md:**
+6. **Append to log.md** (append-only; never edit past entries):
    ```
    ## [YYYY-MM-DD] ingest | <source title>
    Summary: <one line>. Updated pages: <list>. Contradictions: <any>.

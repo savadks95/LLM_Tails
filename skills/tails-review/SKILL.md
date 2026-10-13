@@ -1,55 +1,79 @@
 ---
 name: tails-review
 description: >
-  Code review focused on all four LLM_Tails pillars: over-engineering (Ponytail
-  ladder), hallucination risks (unverified APIs, invented patterns), consistency
-  violations, and architecture misunderstandings. One line per finding. Use when
-  the user says "review", "tails review", "/tails-review", "check this diff",
-  or "what's wrong with this". One-shot report, applies nothing.
+  Deep four-pillar quality review of a diff or change: correctness, safety, load,
+  hallucination risks (unverified APIs/types), consistency violations, tests, and
+  lean minimal code. Reads the connected code, not just the diff. Each finding has
+  a concrete case and four structured parts. Use for "review this", "tails review",
+  "/tails-review", "review my PR", "is this over-engineered", "audit this diff".
 ---
 
-Review diffs through the four LLM_Tails lenses. One line per finding.
+Review a change through all four LLM_Tails pillars like the senior developer who will be paged when it breaks:
+1. **Understand first:** callers, callees, real flow, expected load.
+2. **Minimal correct code:** YAGNI, reuse, stdlib, native, shortest working diff.
+3. **Never hallucinate:** verify every referenced API, path, signature, and dependency.
+4. **Enforce consistency:** match naming conventions, patterns, and error strategies.
 
-## Format
+This is a report the user asked for, so give it in full.
 
-`<N>. L<line>: <tag> <what>. <fix>.`, or `<N>. <file>:L<line>: ...` for
-multi-file diffs. Number findings across the whole report so the user can
-say "fix 2 and 5".
+## 1. Understand first
 
-## Tags
+- Review what the user names: uncommitted or staged changes, a branch, a PR, or files. Nothing named: uncommitted changes (or the last commit).
+- Read the diff, then the code it touches: callers of every changed function, functions called downstream, tests, configs, and `wiki/` (if it exists).
+- Trace the real flow: where data enters, how it transforms, where it is stored or exported.
+- A change can break code it does not touch: when signatures, return types, or behaviors change, grep every caller.
+- State the assumed load (e.g., single script run vs concurrent production traffic).
 
-### Pillar 2 — Minimal code
-- `delete:` dead code, unused flexibility, speculative feature. Replacement: nothing.
-- `stdlib:` hand-rolled thing the standard library ships. Name the function.
-- `native:` dependency or code doing what the platform already does. Name the feature.
-- `reuse:` equivalent helper already in this repo. Name the path.
-- `yagni:` abstraction with one implementation, config nobody sets, layer with one caller.
-- `shrink:` same logic, fewer lines. Show the shorter form.
+## 2. Look for (The Four Pillars)
 
-### Pillar 3 — Hallucination risks
-- `unverified:` API call, import, or config key that may not exist. Needs verification.
-- `invented:` function signature or pattern that doesn't match the actual library/framework.
-- `stale:` references deprecated API, removed feature, or outdated pattern.
+1. **Bugs & Root Causes (Pillars 1 & 2):** wrong result, crash, missed edge cases (empty, zero, bounds, timezones), a caller broken by the change, or a patch applied to a symptom instead of the shared root cause.
+2. **Risks & Security (Pillars 1 & 3):** injection, weak randomness, data loss (swallowed errors, out-of-order writes, missing transactions), unverified input at trust boundaries.
+3. **Hallucination Risks (Pillar 3):**
+   - `unverified:` API, method, flag, or dependency that may not exist in the installed version.
+   - `invented:` signature or option that doesn't match the actual upstream library.
+   - `stale:` deprecated or removed methods referenced from memory.
+4. **Consistency Violations (Pillar 4):**
+   - `naming:` identifier violates existing project naming conventions (`camelCase` vs `snake_case`).
+   - `pattern:` diverges from project error handling (e.g. throwing error where project uses `Result`), import style, or architectural layering.
+5. **Missing Checks (Pillars 1 & 2):** risky new logic (branch, parser, money, security, data write) with no test or assert check. One targeted test, not bloat coverage.
+6. **Lean & Minimal Code (Pillar 2):**
+   - `delete:` dead code, speculative options, unused flexibility.
+   - `reuse:` project already has this helper (name the path).
+   - `stdlib / native:` standard library or platform feature already covers it; adding dependencies for a few lines.
+   - `yagni:` abstraction with one implementation, config nobody sets.
+   - `shrink:` same logic, fewer lines. Show the shorter form.
 
-### Pillar 4 — Consistency violations
-- `naming:` doesn't match project naming convention. Name the convention.
-- `pattern:` doesn't match established project pattern. Name the pattern.
-- `style:` import ordering, comment style, formatting doesn't match.
+## 3. Check before you report
 
-### Pillar 1 — Architecture
-- `scope:` change doesn't account for all callers/callees. Name the missed path.
-- `root-cause:` patches symptom, not the root cause. Name where the real fix goes.
+- **Concrete case rule:** Every finding must cite a concrete scenario: "this input or situation leads to this wrong result". No case, no finding.
+- Re-read lines and confirm: the caller exists, the API is verified or unverified, the code is truly unused.
+- Marked shortcuts: a comment in the form `shortcut: <ceiling>, <upgrade path>` or `tails: ...` is an intentional decision, not a defect, unless load already crosses the ceiling.
+- Propose the smallest fix that works. Deletion beats addition.
 
-## Scoring
+## 4. Output Format
+
+Start with `What this change does:` in two or three sentences, and the assumed load.
+
+Then findings grouped into three severity sections (omit empty sections):
+- **Must fix:** bugs, security holes, data loss, breaks under load, hallucinated APIs.
+- **Should fix:** risky code without a test, bloat/YAGNI, consistency drift, missed callers.
+- **Nice to have:** small speedups, cleaner idioms, shorter forms.
+
+Number findings sequentially across all groups so the user can say "fix 2 and 5".
+Every finding includes four structured parts:
+
+```markdown
+<N>. **<Title>** (`<file>:L<line>`) [tag: <tag>]
+   - **What this is:** [1-2 sentences on what the code does]
+   - **Problem:** [Concrete situation that fails, breaks consistency, or risks hallucination]
+   - **Fix:** [Smallest working fix, showing exact replacement or diff]
+   - **If we skip it:** [Concrete consequence if merged as-is]
+```
 
 End with:
-```
-net: -<N> lines possible, <M> hallucination risks, <K> consistency issues.
-```
+- `Verdict:` `Ship.` or `Fix <N> and <M> first.`
+- `Lean:` `-<N> lines possible, -<M> deps possible.`
+- `Discipline Scorecard:` `<A> bugs/risks | <B> hallucination risks | <C> consistency issues | <D> lean cuts`
+- `Not checked:` [One line stating what was outside scope or could not be verified]
 
-Nothing to flag: `Clean. Ship.`
-
-## Boundaries
-
-Lists findings, applies nothing. One-shot.
-"stop tails-review" or "normal mode": revert.
+If clean: `What this change does:`, then `Clean. Ship.` and one line on what was verified.

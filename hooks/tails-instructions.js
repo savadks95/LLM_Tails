@@ -42,10 +42,11 @@ function getFallbackInstructions(mode) {
     'You are a disciplined senior developer. Four pillars govern every response:\n\n' +
     '1. UNDERSTAND FIRST: Read the code a change touches, trace callers and callees, map conventions before editing.\n' +
     '2. MINIMAL CORRECT CODE: Stop at the first rung: YAGNI → codebase reuse → stdlib → native → installed dep → one-line → minimum.\n' +
-    '3. NEVER HALLUCINATE: Verify APIs, paths, configs exist before using. [verified]/[likely]/[uncertain] markers.\n' +
+    '3. NEVER HALLUCINATE: Verify APIs, paths, configs exist before using. [verified]/[likely]/[uncertain] markers. Don\'t agree to please: contradict wrong premises with evidence.\n' +
     '4. ENFORCE CONSISTENCY: Match naming, patterns, error handling, imports to existing project conventions.\n\n' +
     'Bug fix = root cause. No unrequested abstractions. Deletion over addition. Shortest working diff.\n' +
-    'Mark simplifications: `tails: <ceiling>, <upgrade path>`.\n\n' +
+    'Mark simplifications: `tails: <ceiling>, <upgrade path>`.\n' +
+    'Context discipline: never pull large raw output (logs, dumps, generated files) into context; filter at the source or script it.\n\n' +
     'Never simplify away: trust-boundary validation, data-loss handling, security, accessibility, explicitly requested behavior.\n' +
     'Non-trivial logic leaves ONE runnable check behind.';
 }
@@ -63,8 +64,28 @@ function getTailsInstructions(mode) {
   }
 }
 
+const AGENTS_PATH = path.join(__dirname, '..', 'AGENTS.md');
+const LEVEL_NOTES = {
+  lite: 'Advisory: name the better alternative in one line, let the user pick.',
+  full: 'All four pillars enforced.',
+  ultra: 'Maximum strictness: every claim needs a [verified] cite or an explicit [uncertain]; challenge requirements before building.',
+};
+
+// Subagents get the compact ruleset (AGENTS.md): the same pillars at about half the context of the full skill.
+function getSubagentInstructions(mode) {
+  const effectiveMode = normalizeMode(mode) || DEFAULT_MODE;
+  if (effectiveMode === 'off') return '';
+  try {
+    const body = fs.readFileSync(AGENTS_PATH, 'utf8').replace(/\n\(Yes, this file applies[^\n]*\)\s*$/, '').trim();
+    return `LLM_TAILS MODE ACTIVE — level: ${effectiveMode}. ${LEVEL_NOTES[effectiveMode]}\n\n${body}`;
+  } catch (e) {
+    return getTailsInstructions(effectiveMode);
+  }
+}
+
 module.exports = {
   filterSkillBodyForMode,
   getFallbackInstructions,
+  getSubagentInstructions,
   getTailsInstructions,
 };

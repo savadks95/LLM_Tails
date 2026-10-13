@@ -1,0 +1,5 @@
+[command]
+name = "tails-stats"
+description = "Show the real context footprint LLM_Tails adds: rules, map, session memory."
+args_hint = "[--json]"
+skill = "tails-stats"

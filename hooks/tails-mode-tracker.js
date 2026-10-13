@@ -1,60 +1,69 @@
 #!/usr/bin/env node
-// UserPromptSubmit hook: track /tails level switching commands.
+// LLM_Tails — UserPromptSubmit hook: tracks /tails mode switches and deactivation commands.
 
-const { normalizeMode, readActiveMode, writeActiveMode, defaultMode } = require('./tails-config');
+const { defaultMode, normalizeMode, isDeactivationCommand } = require('./tails-config');
 const { getTailsInstructions } = require('./tails-instructions');
+const { readMode, setMode, writeHookOutput } = require('./tails-runtime');
 
-// Read the user's prompt from stdin
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (chunk) => { input += chunk; });
 process.stdin.on('end', () => {
   let userPrompt = '';
+  let sessionId;
   try {
     const parsed = JSON.parse(input);
     userPrompt = (parsed.prompt || parsed.userPrompt || parsed.message || '').trim();
+    sessionId = parsed.session_id;
   } catch (_) {
     userPrompt = input.trim();
   }
 
-  // Match /tails or /tails <level> commands
+  // Standalone deactivation: "stop tails" / "normal mode"
+  if (isDeactivationCommand(userPrompt)) {
+    setMode('off'); // off lasts until switched back or a new session starts
+    writeHookOutput('UserPromptSubmit', 'off', 'LLM_TAILS MODE DEACTIVATED. Reverted to standard agent behavior.');
+    return;
+  }
+
+  // Match /tails or /tails <level>
   const match = userPrompt.match(/^\/tails(?:\s+(lite|full|ultra|off))?$/i);
-  if (!match) return;
+  if (!match) {
+    // Session memory: remember the request and any correction the user makes. Only hosts that
+    // send a session id can restore memory later, so others record nothing.
+    if (sessionId && (readMode() || defaultMode()) !== 'off') {
+      try { require('./tails-session').recordPrompt(sessionId, userPrompt); } catch (_) {}
+    }
+    return;
+  }
 
   const requestedLevel = match[1] ? match[1].toLowerCase() : null;
-  const currentMode = readActiveMode() || defaultMode();
+  const currentMode = readMode() || defaultMode();
 
   if (!requestedLevel) {
     // Bare /tails: report current mode or activate if off
     if (currentMode !== 'off') {
-      const output = {
-        hookSpecificOutput: {
-          additionalContext: `LLM_Tails mode: ${currentMode}. Use \`/tails lite|full|ultra|off\` to switch.`
-        }
-      };
-      process.stdout.write(JSON.stringify(output));
+      writeHookOutput(
+        'UserPromptSubmit',
+        currentMode,
+        `LLM_Tails active level: **${currentMode}**. Use \`/tails lite|full|ultra|off\` to switch.`
+      );
     } else {
       const newMode = defaultMode() === 'off' ? 'full' : defaultMode();
-      writeActiveMode(newMode);
+      setMode(newMode);
       const instructions = getTailsInstructions(newMode);
-      const output = { hookSpecificOutput: { additionalContext: instructions } };
-      process.stdout.write(JSON.stringify(output));
+      writeHookOutput('UserPromptSubmit', newMode, instructions);
     }
     return;
   }
 
   // Switch to requested level
-  writeActiveMode(requestedLevel);
   if (requestedLevel === 'off') {
-    const output = {
-      hookSpecificOutput: {
-        additionalContext: 'LLM_Tails deactivated. Normal mode.'
-      }
-    };
-    process.stdout.write(JSON.stringify(output));
+    setMode('off'); // off lasts until switched back or a new session starts
+    writeHookOutput('UserPromptSubmit', 'off', 'LLM_TAILS MODE DEACTIVATED. Normal mode restored.');
   } else {
+    setMode(requestedLevel);
     const instructions = getTailsInstructions(requestedLevel);
-    const output = { hookSpecificOutput: { additionalContext: instructions } };
-    process.stdout.write(JSON.stringify(output));
+    writeHookOutput('UserPromptSubmit', requestedLevel, instructions);
   }
 });

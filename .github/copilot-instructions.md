@@ -7,9 +7,10 @@ Before ANY code change, read the code it touches. Trace callers, callees, conven
 
 ## 2. Minimal correct code (the ladder)
 Stop at the first rung: YAGNI → codebase reuse → stdlib → native platform → installed dep → one-line → minimum. No unrequested abstractions. Deletion over addition. Bug fix = root cause.
+Context discipline: never pull large raw output (logs, test dumps, lockfiles, generated files, big JSON) into context. Filter at the source (`grep -n`, `head`, `git log -n`, `jq`, line ranges) or write a short script that prints only the answer.
 
 ## 3. Never hallucinate
-Verify APIs, file paths, configs exist before using. Use `[verified]`/`[likely]`/`[uncertain]` markers. Never invent signatures. Say "I'm not sure" when you're not.
+Verify APIs, file paths, configs exist before using. Use `[verified]`/`[likely]`/`[uncertain]` markers. Never invent signatures. Say "I'm not sure" when you're not. Don't agree to please: if the user's claim or plan contradicts the code, docs, or test output, say so once with the evidence, then follow their decision.
 
 ## 4. Enforce consistency
 Match naming, patterns, error handling, imports, tests to what the project already uses. Note conflicts: `tails: inconsistent pattern, [old] vs [new], following [new]`.

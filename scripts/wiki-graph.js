@@ -20,12 +20,13 @@ function findWikiFiles(dir, fileList = []) {
 }
 
 function normalizeNodeName(name) {
-  return name.replace(/\.md$/i, '').trim();
+  return name.trim().replace(/\.md$/i, '');
 }
 
 function parseWikiLinks(content) {
   const links = new Set();
-  const regex = /\[\[([a-zA-Z0-9_\-\/\s]+)(?:\|[^\]]+)?\]\]/g;
+  // [[page]], [[dir/page.md]], [[page#section]], [[page|alias]]
+  const regex = /\[\[([^\]|#\n]+)(?:#[^\]|\n]*)?(?:\|[^\]\n]+)?\]\]/g;
   let match;
   while ((match = regex.exec(content)) !== null) {
     const target = normalizeNodeName(match[1]);
@@ -72,6 +73,19 @@ function buildGraph(wikiDir) {
     }
   }
 
+  // Resolve links like Obsidian: exact path first, else a unique page with that basename
+  // ([[auth]] -> entities/auth). Unresolved links stay as-is: they are missing pages.
+  const byBase = new Map();
+  for (const name of nodes.keys()) {
+    const base = path.posix.basename(name);
+    byBase.set(base, byBase.has(base) ? null : name);
+  }
+  for (const edge of edges) {
+    if (!nodes.has(edge.to) && byBase.get(path.posix.basename(edge.to))) {
+      edge.to = byBase.get(path.posix.basename(edge.to));
+    }
+  }
+
   // Calculate in-degree
   for (const edge of edges) {
     if (nodes.has(edge.to)) {
@@ -107,10 +121,17 @@ function generateMermaid(graph, options = {}) {
     }
   }
 
-  // Add edges
+  // Add edges; a link to a page that does not exist is drawn as a dashed "missing" node
+  lines.push('  classDef missing fill:#fef3c7,stroke:#d97706,color:#78350f,stroke-dasharray:4 3;');
+  const missing = new Set();
   for (const edge of graph.edges) {
     const fromId = edge.from.replace(/[^a-zA-Z0-9_]/g, '_');
     const toId = edge.to.replace(/[^a-zA-Z0-9_]/g, '_');
+    if (!graph.nodes.has(edge.to) && !missing.has(toId)) {
+      missing.add(toId);
+      lines.push(`  ${toId}["${path.basename(edge.to)} (missing)"]`);
+      lines.push(`  class ${toId} missing;`);
+    }
     lines.push(`  ${fromId} --> ${toId}`);
   }
 
@@ -182,4 +203,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { buildGraph, generateMermaid, parseWikiLinks };
+module.exports = { buildGraph, findWikiFiles, generateMermaid, parseWikiLinks };

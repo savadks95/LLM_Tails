@@ -1,81 +1,83 @@
-// Correctness gate: validates that minimal solutions are functionally correct
-// and do not sacrifice safety or working behavior.
+// Correctness gate: runs each sample in a VM sandbox and checks real behavior, so a minimal
+// solution only passes if it actually works. No keyword or "function exists" checks.
 
 const vm = require('vm');
 const { extractCodeBlocks } = require('./loc.js');
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Top-level function declarations in the sample become properties of the sandbox.
+function load(code, globals = {}) {
+  const sandbox = { setTimeout, clearTimeout, Promise, Error, ...globals };
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox, { timeout: 1000 });
+  return sandbox;
+}
+
+function need(sandbox, name) {
+  if (typeof sandbox[name] !== 'function') throw new Error(`function ${name}() not found`);
+  return sandbox[name];
+}
+
 const TASKS = {
-  debounce(code) {
-    const sandbox = { result: null, timer: null, setTimeout, clearTimeout };
-    vm.createContext(sandbox);
-    try {
-      const wrapped = `
-        ${code}
-        let count = 0;
-        const inc = () => { count++; };
-        const debounced = debounce(inc, 50);
-        debounced();
-        debounced();
-        debounced();
-        sandboxResult = { count, hasFunction: typeof debounced === 'function' };
-      `;
-      vm.runInContext(wrapped, sandbox, { timeout: 1000 });
-      return {
-        pass: sandbox.sandboxResult && sandbox.sandboxResult.hasFunction,
-        reason: 'Valid debounce implementation exported.',
-      };
-    } catch (e) {
-      return { pass: false, reason: `Runtime error in debounce: ${e.message}` };
-    }
+  async debounce(code) {
+    const debounce = need(load(code), 'debounce');
+    let count = 0;
+    const d = debounce(() => { count++; }, 20);
+    d(); d(); d();
+    if (count !== 0) return { pass: false, reason: `fired ${count}x synchronously` };
+    await sleep(60);
+    return count === 1
+      ? { pass: true, reason: '3 rapid calls -> 1 trailing call' }
+      : { pass: false, reason: `expected 1 call after wait, got ${count}` };
   },
 
-  csvSum(code) {
-    const sandbox = {};
-    vm.createContext(sandbox);
-    try {
-      const wrapped = `
-        ${code}
-        const data = "a,10\\nb,20\\nc,30";
-        const total = typeof sumCsv === 'function' ? sumCsv(data, 1) : 0;
-        sandboxTotal = total;
-      `;
-      vm.runInContext(wrapped, sandbox, { timeout: 1000 });
-      const pass = sandbox.sandboxTotal === 60 || sandbox.sandboxTotal === 0; // flexible signature check
-      return { pass, reason: pass ? 'CSV parsing valid.' : `Expected 60, got ${sandbox.sandboxTotal}` };
-    } catch (e) {
-      // If code is python or generic, perform structural check
-      const hasSplit = /split\(|splitlines\(|readline|csv\./i.test(code);
-      return { pass: hasSplit, reason: hasSplit ? 'Structural CSV parser detected' : e.message };
-    }
+  async csvSum(code) {
+    const total = need(load(code), 'sumCsv')('a,10\nb,20\nc,x\nd,30', 1);
+    return total === 60
+      ? { pass: true, reason: 'sums column, skips non-numeric' }
+      : { pass: false, reason: `expected 60, got ${total}` };
   },
 
-  rateLimit(code) {
-    // Structural and logic validation
-    const hasWindowOrBucket = /window|timestamp|now|date\.now|tokens|capacity|bucket|count/i.test(code);
-    const hasCheck = /<|<=|>|>=/i.test(code);
-    return {
-      pass: hasWindowOrBucket && hasCheck,
-      reason: hasWindowOrBucket ? 'Rate limit algorithm verified' : 'Missing window/bucket rate limit logic',
+  async rateLimit(code) {
+    const isRateLimited = need(load(code), 'isRateLimited');
+    const ts = [];
+    const got = [isRateLimited(ts, 2, 1000), isRateLimited(ts, 2, 1000), isRateLimited(ts, 2, 1000)];
+    const old = [Date.now() - 5000, Date.now() - 5000];
+    const expired = isRateLimited(old, 2, 1000);
+    return JSON.stringify(got) === '[false,false,true]' && expired === false
+      ? { pass: true, reason: 'limits the 3rd call in window, old calls expire' }
+      : { pass: false, reason: `got ${JSON.stringify(got)}, expired window -> ${expired}` };
+  },
+
+  async apiClient(code) {
+    let calls = 0;
+    const flaky = async () => {
+      calls++;
+      if (calls < 3) throw new Error('network');
+      return { ok: true, json: async () => ({ id: 1 }) };
     };
-  },
+    const fetchWithRetry = need(load(code, { fetch: flaky }), 'fetchWithRetry');
+    const data = await fetchWithRetry('/x', {}, 3, 1);
+    if (!data || data.id !== 1) return { pass: false, reason: 'did not return data after retries' };
 
-  apiClient(code) {
-    const hasFetch = /fetch|axios|request|http/i.test(code);
-    const hasRetry = /retries|attempts|for\s*\(|while\s*\(|delay|backoff/i.test(code);
-    return {
-      pass: hasFetch && hasRetry,
-      reason: hasFetch && hasRetry ? 'API client with retry logic verified' : 'Missing fetch or retry logic',
-    };
+    const down = need(load(code, { fetch: async () => { throw new Error('down'); } }), 'fetchWithRetry');
+    const failed = await down('/x', {}, 2, 1).then(() => false, () => true);
+    return failed
+      ? { pass: true, reason: 'retries transient failures, throws when exhausted' }
+      : { pass: false, reason: 'resolved although every attempt failed' };
   },
 };
 
-function evaluateCorrectness(taskName, output) {
+async function evaluateCorrectness(taskName, output) {
   const code = extractCodeBlocks(output) || output;
   const runner = TASKS[taskName];
-  if (!runner) {
-    return { pass: true, reason: `No specific test runner for '${taskName}', default pass.` };
+  if (!runner) return { pass: false, reason: `no correctness runner for '${taskName}'` };
+  try {
+    return await runner(code);
+  } catch (e) {
+    return { pass: false, reason: e.message };
   }
-  return runner(code);
 }
 
 module.exports = { evaluateCorrectness, TASKS };

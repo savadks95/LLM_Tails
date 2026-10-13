@@ -31,13 +31,23 @@ Display this reference card when invoked. One-shot, do NOT change mode.
 | Skill | Trigger | What it does |
 |-------|---------|-------------|
 | **tails** | `/tails` | The four pillars, always-on. |
-| **tails-review** | `/tails-review` | Diff review through all four lenses. |
+| **tails-review** | `/tails-review` | Diff review through all four lenses, 4-part findings. |
 | **tails-audit** | `/tails-audit` | Whole-repo audit: bloat, hallucination risks, consistency, architecture. |
 | **tails-wiki-init** | `/tails-wiki-init` | Scaffold a project wiki from the current codebase. |
 | **tails-wiki-ingest** | `/tails-wiki-ingest` | Process a new source into the wiki. |
 | **tails-wiki-lint** | `/tails-wiki-lint` | Health-check the wiki against current code. |
-| **tails-debt** | `/tails-debt` | Harvest `tails:` shortcut comments into a tracked ledger. |
+| **tails-wiki-query** | `/tails-wiki-query` | Ranked wiki search + 1-hop links; `--save` files the answer back. |
+| **tails-end** | `/tails-end` | Close the session: file decisions and learnings into the wiki. |
+| **tails-debt** | `/tails-debt` | Harvest `tails:` / `shortcut:` comments into a tracked ledger. |
+| **tails-gain** | `/tails-gain` | Benchmark scoreboard (illustrative examples). |
+| **tails-stats** | `/tails-stats` | Real context footprint LLM_Tails adds in this project. |
+| **tails-doctor** | `/tails-doctor` | Diagnose the install: hooks, host, mode, budget, memory. |
 | **tails-help** | `/tails-help` | This card. |
+
+## Context discipline
+
+- Never pull large raw output into context; filter at the source or script it.
+- Claude Code: session memory is restored after compaction (opt out: `TAILS_MEMORY=0`). Optional large-read guard: see INSTALL.md.
 
 ## Comment markers
 

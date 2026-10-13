@@ -1,21 +1,26 @@
 # Agent Portability
 
 LLM_Tails is an agent-portable skill distribution. The skills in `skills/` hold
-the core behavior; host-specific files are thin adapters.
+the core behavior; host-specific files are thin adapters that wire that behavior into
+various AI coding agents.
 
 ## Supported Adapters
 
 | Host | Files | Capabilities |
 |------|-------|-------------|
-| Claude Code | `.claude-plugin/plugin.json`, `hooks/claude-codex-hooks.json`, `commands/`, `skills/` | Full plugin: lifecycle hooks, `/tails` commands, mode persistence, subagent injection |
-| Codex | `.codex-plugin/plugin.json`, `hooks/claude-codex-hooks.json`, `commands/`, `skills/` | Full plugin: same as Claude Code |
+| Claude Code | `.claude-plugin/plugin.json`, `hooks/claude-hooks.json`, `commands/`, `skills/` | Full plugin: lifecycle hooks, automated codebase map on SessionStart, `/tails` commands, mode persistence, subagent injection, session memory across compaction (PostToolUse / PostToolUseFailure); optional large-read guard (opt-in, see INSTALL.md) |
+| Codex | `.codex-plugin/plugin.json`, `hooks/claude-codex-hooks.json`, `commands/`, `skills/` | Plugin: SessionStart, SubagentStart, UserPromptSubmit (same as Claude Code minus session memory) |
+| Antigravity (IDE) | `.agents/rules/llm-tails.md`, `.agents/plugins/marketplace.json`, `AGENTS.md` | Native workspace rules and IDE plugin discovery |
+| Antigravity CLI | `gemini-extension.json`, `AGENTS.md`, `commands/`, `skills/` | Extension: always-on context + slash commands + skills |
+| Cursor | `hooks/cursor-hooks.json`, `scripts/cursor-hooks.js`, `docs/cursor-hooks.md`, `.cursor/rules/llm-tails.mdc` | Full lifecycle hooks: sessionStart ruleset + codebase map, beforeSubmitPrompt level tracking; or instruction-only rule fallback |
+| GitHub Copilot / CLI | `hooks/copilot-hooks.json`, `.github/copilot-instructions.md` | Full lifecycle hooks (sessionStart + userPromptSubmitted in bash/PowerShell) and repository instructions |
+| Qoder | `.qoder-plugin/plugin.json`, `.qoder/rules/llm-tails.md`, `hooks/qoder-hooks.json`, `skills/` | Full plugin: UserPromptSubmit mode tracking, PreToolUse subagent injection, workspace rules |
+| Devin CLI | `.devin-plugin/plugin.json`, `skills/` | Plugin: native skill import for `/tails`, `/tails-review`, etc. |
+| CodeBuddy | `.claude-plugin/plugin.json`, `hooks/`, `skills/` | Auto-detected by hooks runtime; responds via `hookSpecificOutput` JSON |
 | Gemini CLI | `gemini-extension.json`, `AGENTS.md`, `commands/`, `skills/` | Extension: always-on context + commands + skills |
-| Antigravity CLI | `gemini-extension.json`, `AGENTS.md`, `commands/`, `skills/` | Extension: same as Gemini CLI |
-| Cursor | `.cursor/rules/llm-tails.mdc` | Instruction-only: always-on rules, no mode switching |
 | Windsurf | `.windsurf/rules/llm-tails.md` | Instruction-only: project rule |
 | Cline | `.clinerules/llm-tails.md` | Instruction-only: project rule |
-| GitHub Copilot | `.github/copilot-instructions.md` | Instruction-only: repository instructions |
-| Kiro | Copy to `.kiro/steering/` | Instruction-only: steering rule |
+| Kiro | `.kiro/steering/llm-tails.md` | Instruction-only: steering rule |
 | Amp, Jules, Zed, CodeWhale, Junie | `AGENTS.md` | Instruction-only: auto-read from project root |
 | Any generic agent | `AGENTS.md` or `skills/*/SKILL.md` | Copy the compact rule file or load skills directly |
 
@@ -28,13 +33,20 @@ instructions, keep its copied rule text aligned with `AGENTS.md`.
 ## Portable Behavior
 
 - `skills/tails/SKILL.md`: the four pillars (core skill)
-- `skills/tails-review/SKILL.md`: four-pillar diff review
-- `skills/tails-audit/SKILL.md`: whole-repo four-pillar audit
-- `skills/tails-wiki-init/SKILL.md`: scaffold a project wiki
-- `skills/tails-wiki-ingest/SKILL.md`: ingest sources into the wiki
-- `skills/tails-wiki-lint/SKILL.md`: health-check wiki against code
-- `skills/tails-wiki-query/SKILL.md`: query wiki for targeted architecture context
-- `skills/tails-debt/SKILL.md`: harvest `tails:` shortcuts into a ledger
+- `skills/tails-review/SKILL.md`: four-pillar diff review (4-part structured findings & severity groups)
+- `skills/tails-audit/SKILL.md`: whole-repo four-pillar audit (architecture, bloat, hallucination, consistency, wiki health)
+- `skills/tails-wiki-init/SKILL.md`: scaffold project wiki with Karpathy 3-layer pattern (`raw/`, `wiki/`, `AGENTS.md`)
+- `skills/tails-wiki-ingest/SKILL.md`: ingest sources into the wiki, preserving immutable raw sources
+- `skills/tails-wiki-lint/SKILL.md`: health-check wiki against code (stale claims, contradictions, orphans, gaps)
+- `skills/tails-wiki-query/SKILL.md`: targeted 1-hop wiki query with compounding knowledge filing (`--save`)
+- `skills/tails-debt/SKILL.md`: harvest `tails:` and `shortcut:` comments into a ledger with `git grep`
 - `skills/tails-gain/SKILL.md`: four-pillar impact scoreboard and benchmark gains
+- `skills/tails-end/SKILL.md`: session close, distills session memory into the wiki (`scripts/memory.js`)
+- `skills/tails-stats/SKILL.md`: real context footprint (`scripts/stats.js`)
+- `skills/tails-doctor/SKILL.md`: install diagnostics (`scripts/doctor.js`)
 - `skills/tails-help/SKILL.md`: quick reference
+- `hooks/tails-map.js`: automated codebase map (zero-dependency regex map of functions, classes, and exports at session start)
+- `hooks/tails-session.js`: session memory restored after compaction/resume (Claude Code hooks)
+- `hooks/tails-read-guard.js`: opt-in large whole-file read guard (Claude Code PreToolUse, added via settings.json)
+- `scripts/wiki-search.js`: zero-dependency BM25 section search over `wiki/`
 - `AGENTS.md`: compact always-on instruction set for agents without skill support

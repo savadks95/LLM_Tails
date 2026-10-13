@@ -1,6 +1,6 @@
 {
   "name": "@savadks95/llm-tails",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Disciplined AI coding mode. Four pillars: understand first, minimal code, no hallucination, enforce consistency.",
   "keywords": [
     "llm",
@@ -24,8 +24,13 @@
     "url": "https://github.com/savadks95/LLM_Tails/issues"
   },
   "scripts": {
+    "test": "node tests/map.test.js && node tests/runtime.test.js && node tests/cursor-hooks.test.js && node tests/session.test.js && node tests/wiki-search.test.js && node tests/wiki-graph.test.js && node tests/benchmark.test.js",
     "bench": "node benchmarks/run.js",
-    "wiki-graph": "node scripts/wiki-graph.js"
+    "wiki-graph": "node scripts/wiki-graph.js",
+    "wiki-search": "node scripts/wiki-search.js",
+    "doctor": "node scripts/doctor.js",
+    "stats": "node scripts/stats.js",
+    "memory": "node scripts/memory.js"
   },
   "files": [
     "AGENTS.md",

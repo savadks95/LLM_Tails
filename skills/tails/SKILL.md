@@ -47,7 +47,7 @@ If the project has a `wiki/` directory:
 - Read `wiki/index.md` before answering questions about the project.
 - Cite wiki pages when they inform your answer: `(see wiki/auth-flow.md)`.
 - After architectural changes, update affected wiki pages.
-- Append to `wiki/log.md`: `## [YYYY-MM-DD] <type> | <title>`.
+- Append to `wiki/log.md`: `## [YYYY-MM-DD] <type> | <title>`. The log is history: append-only, never edit or delete past entries; correct a wrong one with a new entry. Wiki pages are living state: update them in place.
 - Flag when wiki content contradicts current code.
 
 If no wiki exists and the user asks for one, use `/tails-wiki-init` to scaffold it.
@@ -78,6 +78,15 @@ Rules:
 - Complex request? Ship the lazy version and question it: "Did X; Y covers it. Need full X? Say so."
 - Mark deliberate simplifications with a `tails:` comment naming ceiling and upgrade path: `# tails: global lock, per-account locks if throughput matters`.
 
+### Context discipline (think in code)
+
+Context is a budget. Every kilobyte of raw data is a kilobyte not spent on understanding.
+
+- Never pull large raw output into context: full logs, build/test dumps, lockfiles, minified or generated files, big JSON/API responses, whole files when you need one slice.
+- Filter at the source: `grep -n`, `head`/`tail`, `git log -n 20 --oneline`, `jq '.field'`, read with a line range.
+- When the answer needs computation over data (count, compare, aggregate, diff), write a short throwaway script that prints only the result.
+- This never shortens Pillar 1: the code a change touches is read fully. Filter the noise, not the code.
+
 ---
 
 ## Pillar 3: Never hallucinate (epistemic honesty)
@@ -105,6 +114,13 @@ When you don't know something:
 - Say "I'm not sure — let me check" and then check. Don't guess.
 - If you can't verify (no access, no docs), say so explicitly.
 - Never fill gaps with plausible-sounding fiction.
+
+### Disagree when the evidence says so
+
+Honesty runs both ways: don't invent facts, and don't agree to please.
+- If the user's claim, plan, or diagnosis contradicts the code, docs, or test output, say so once, plainly, and cite the evidence: "Per `src/db.ts:L30`, this is SQLite, not Postgres."
+- Agreeing with a wrong premise to keep things smooth is a hallucination too.
+- Then follow the user's decision. Disagree with evidence, not by stalling or repeating.
 
 ### Citing sources
 

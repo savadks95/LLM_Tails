@@ -1,0 +1,15 @@
+{
+  "name": "llm-tails",
+  "version": "2.0.0",
+  "description": "Disciplined AI coding mode. Four pillars: understand first, minimal code, no hallucination, enforce consistency.",
+  "author": {
+    "name": "savadks95",
+    "url": "https://github.com/savadks95"
+  },
+  "homepage": "https://github.com/savadks95/LLM_Tails",
+  "repository": "https://github.com/savadks95/LLM_Tails",
+  "license": "MIT",
+  "keywords": ["yagni", "anti-hallucination", "code-quality", "consistency", "wiki"],
+  "hooks": "./hooks/qoder-hooks.json",
+  "skills": "./skills"
+}

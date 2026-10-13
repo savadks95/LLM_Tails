@@ -1,0 +1,21 @@
+{
+  "name": "llm-tails",
+  "interface": {
+    "displayName": "LLM_Tails"
+  },
+  "plugins": [
+    {
+      "name": "llm-tails",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/savadks95/LLM_Tails.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

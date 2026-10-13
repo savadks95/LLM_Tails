@@ -1,0 +1,5 @@
+[command]
+name = "tails-doctor"
+description = "Diagnose the LLM_Tails install: hooks, host, mode, context budget, map, memory."
+args_hint = ""
+skill = "tails-doctor"
