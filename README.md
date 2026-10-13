@@ -15,17 +15,37 @@
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
 </p>
 
-## Support
+**Your AI coding agent patches the wrong file, invents an API that doesn't exist, adds a `SomethingManager` class nobody asked for, and forgets "no, we don't use Redis" the moment its context compacts.**
 
-If you find LLM_Tails helpful, consider buying me a coffee:
+LLM_Tails is an open-source prompt + hooks + skills bundle that makes the agent read before it writes, write the minimum, verify before it claims, and match your codebase. MIT, zero dependencies, works with Claude Code, Cursor, Copilot, Codex, Gemini, Windsurf, Cline, Kiro, and any agent that reads `AGENTS.md`.
 
-<p align="center">
-  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
-  <br><br>
-  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
-    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
-  </a>
-</p>
+## Quick start
+
+**Claude Code** (two separate prompts):
+
+```
+/plugin marketplace add savadks95/LLM_Tails
+```
+```
+/plugin install llm-tails@tails
+```
+
+**Anything else:** copy [`AGENTS.md`](AGENTS.md) into your project root, or see [Install](#install) for per-agent steps.
+
+Then check it's working with `/tails-doctor`, and see what it costs in context with `/tails-stats`.
+
+## Before / after
+
+You ask the AI to fix a login bug. Without LLM_Tails, it patches the login handler (wrong file) and adds speculative Redis cache clearing (hallucinated — the project doesn't use Redis).
+
+With LLM_Tails:
+
+1. **Pillar 1:** Reads `wiki/entities/auth.md` and session codebase map, traces the flow, finds the bug is in `changePassword()` — it stores plaintext instead of calling `hashPassword()`
+2. **Pillar 2:** One-line fix in the right file
+3. **Pillar 3:** `[verified]` — `hashPassword` confirmed in `src/auth/utils.js:L12`
+4. **Pillar 4:** Matches the pattern already used in `createUser()`
+
+More worked examples in [examples/](examples/).
 
 ## What is this?
 
@@ -82,19 +102,6 @@ Building upon these foundations, LLM_Tails unifies them and adds two new critica
 **Any agent that reads `AGENTS.md`:** copy [`AGENTS.md`](AGENTS.md) into your project root.
 
 Step-by-step for Codex, Gemini, Qoder, Devin, Windsurf, Cline, Copilot, Kiro, and more: **[INSTALL.md](INSTALL.md)**.
-
-## Before / after
-
-You ask the AI to fix a login bug. Without LLM_Tails, it patches the login handler (wrong file) and adds speculative Redis cache clearing (hallucinated — the project doesn't use Redis).
-
-With LLM_Tails:
-
-1. **Pillar 1:** Reads `wiki/entities/auth.md` and session codebase map, traces the flow, finds the bug is in `changePassword()` — it stores plaintext instead of calling `hashPassword()`
-2. **Pillar 2:** One-line fix in the right file
-3. **Pillar 3:** `[verified]` — `hashPassword` confirmed in `src/auth/utils.js:L12`
-4. **Pillar 4:** Matches the pattern already used in `createUser()`
-
-More examples in [examples/](examples/).
 
 ## How it works
 
@@ -170,33 +177,28 @@ AGENTS.md             # the schema: tells the LLM how to maintain the wiki
 - Run `node scripts/wiki-search.js "<topic>"` for ranked (BM25) section search across the wiki, with zero dependencies.
 - Run `node scripts/wiki-graph.js` to inspect connectivity and automatically generate a Mermaid architecture graph.
 
-## Empirical Benchmarks
+## Benchmarks
 
-LLM_Tails includes an automated zero-dependency benchmark suite ([benchmarks/](benchmarks/)) measuring generated code size, correctness, and pillar compliance across canonical engineering tasks:
+> **Read this first:** the benchmark scores **hand-written** baseline and LLM_Tails sample outputs on four tasks. It shows the behaviour the rules aim for and tests the evaluator itself; it does **not** measure live agent runs. For real numbers on your own project's overhead, use `/tails-stats` (`npm run stats`). Live-agent results from your codebase are very welcome in [issues](https://github.com/savadks95/LLM_Tails/issues).
+
+The zero-dependency suite ([benchmarks/](benchmarks/)) measures code size, runs each LLM_Tails sample against real behaviour checks in a VM sandbox, and scores four-pillar compliance across four tasks (debounce, rate limiter, CSV aggregation, retrying API client):
 
 ```
-=================================================================
-       LLM_TAILS FOUR-PILLAR EMPIRICAL SCOREBOARD
-=================================================================
-
-Metric                   Baseline Agent     LLM_Tails       Gain / Impact
+Metric                   Baseline sample    LLM_Tails sample
 -----------------------------------------------------------------
-Code Size (LOC)          94 loc             32 loc          -66.0% bloat cut
-Unrequested Classes      4 classes          0 classes       100% YAGNI compliant
-Functional Correctness   (not executed)     100% pass       Real execution in VM
-Four-Pillar Compliance   50%                94%             +44% discipline score
-Output Discipline        Verbose prose      <= 3 lines      ~70% response token cut
+Code Size (LOC)          94 loc             32 loc   (-66%)
+Unrequested Classes      4 classes          0 classes
+Functional Correctness   (not executed)     4/4 pass (real execution in VM)
+Four-Pillar Compliance   50%                94%
 -----------------------------------------------------------------
 ```
 
-Run benchmarks and tests locally:
+Run tests and benchmarks locally:
 ```bash
 npm test
 npm run bench
 ```
-Or check the scoreboard anytime inside your agent using `/tails-gain`.
-
-> The benchmark compares hand-written baseline and LLM_Tails example outputs; it illustrates the pillars, it does not measure live agent runs. For real numbers on your project's overhead, use `/tails-stats` (`npm run stats`).
+Or check the scoreboard inside your agent with `/tails-gain`.
 
 ## Compatibility
 
@@ -224,6 +226,21 @@ It also works with **Caveman** — Caveman shrinks what the agent says, LLM_Tail
 
 LLM_Tails exists to synthesize and extend these two great concepts into a unified, cross-agent ecosystem.
 
+## Feedback & contributing
+
+Bug reports, live-agent results, and "it made my agent worse at X" stories are all useful: open an [issue](https://github.com/savadks95/LLM_Tails/issues). PRs for new agent adapters are welcome; see [docs/agent-portability.md](docs/agent-portability.md) for the adapter rule.
+
+## Support
+
+If you find LLM_Tails helpful, consider buying me a coffee:
+
+<p align="center">
+  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
+  <br><br>
+  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
+    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
+  </a>
+</p>
 
 ## License
 
