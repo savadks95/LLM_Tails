@@ -118,7 +118,7 @@ LLM_Tails is one prompt: [`skills/tails/SKILL.md`](skills/tails/SKILL.md). The c
 | `/tails-wiki-ingest` | Process a new source into the wiki, preserving immutable raw sources |
 | `/tails-wiki-lint` | Health-check the wiki against code (stale claims, contradictions, orphans, gaps) |
 | `/tails-wiki-query` | Query the wiki with ranked (BM25) section search, 1-hop relationship traversal, and compounding knowledge filing (`--save`) |
-| `/tails-end` | Close the session: distill decisions, rejected approaches, and gotchas into the wiki (`log.md` + affected pages) |
+| `/tails-end` | Close the session: distill decisions, rejected approaches, and gotchas into the wiki (`log.md` + affected pages) and write the cross-agent handoff (`handoff.md`) |
 | `/tails-debt` | Harvest `tails:` and `shortcut:` comments into a tracked ledger via git-aware scan |
 | `/tails-gain` | Show the measured four-pillar impact scoreboard and benchmark gains |
 | `/tails-stats` | Show the real context footprint LLM_Tails adds here: rules, codebase map, session memory |
@@ -148,6 +148,8 @@ Context is a budget. LLM_Tails spends it on understanding, not on raw data:
 - **Think in code (all agents):** the rules tell the agent never to pull large raw output (logs, test dumps, lockfiles, generated files, big JSON) into context. It filters at the source (`grep -n`, `head`, `git log -n`, `jq`, line ranges) or writes a short script that prints only the answer. Code a change touches is still read fully.
 - **Large-read guard (Claude Code, opt-in):** a whole-file read over 64 KB gets advice to read a slice instead; in `ultra` it is blocked with the same advice. Ranged reads pass untouched. Off by default because it would add Node's startup time (~100+ ms) to every Read; enable it with one settings entry ([INSTALL.md](INSTALL.md#optional-large-read-guard-claude-code)).
 - **Session memory (Claude Code):** hooks record the files changed, open tasks, your corrections ("no, don't use Redis"), and tool errors, with secrets masked, in a local per-project, per-session file. After context compaction or resume, a summary of at most 2 KB is restored, so the agent does not redo work or repeat a rejected approach, and is nudged to file lasting decisions into `wiki/log.md`. Disable with `TAILS_MEMORY=0`.
+- **Cross-agent handoff (all agents):** `/tails-end` writes `wiki/handoff.md`: where the work stands, the next step, what not to retry, open questions. It is a plain file in your repo, so the next session picks it up whichever agent, machine, or teammate runs it: hooks inject it at session start (flagged when older than 14 days), and the rules file tells hook-less agents to read it. `Status: done` closes it. Disable injection with `TAILS_HANDOFF=0`.
+- **Plays well with companions (Claude Code):** if [context-mode](https://github.com/mksglu/context-mode) or [ai-memory](https://github.com/akitaonrails/ai-memory) is installed, LLM_Tails detects it and splits the work instead of doing it twice: with context-mode it points the agent at the `ctx_*` sandbox tools for large output and skips its own memory restore after compaction (context-mode restores its own); with ai-memory it tells the agent to search past sessions there and keep `wiki/` as the reviewed record. `/tails-doctor` shows what was detected.
 - **Fits the host's limit:** rules, memory, and map share one budget under Claude Code's 10,000-character limit for session-start context; after compaction, memory wins over the map.
 
 See the cost for your project anytime with `/tails-stats`, and check the install with `/tails-doctor`.
@@ -161,6 +163,7 @@ raw/                  # (optional) immutable raw sources: articles, papers, spec
 wiki/
 ├── index.md          # content-oriented catalog of all wiki pages
 ├── log.md            # history: append-only, past entries never edited
+├── handoff.md        # where the last session left off (rewritten by /tails-end)
 ├── overview.md       # what this project does in plain language
 ├── architecture.md   # code structure, entry points, data flow
 ├── conventions.md    # naming, file org, error handling patterns
@@ -172,7 +175,7 @@ AGENTS.md             # the schema: tells the LLM how to maintain the wiki
 
 - Run `/tails-wiki-init` to scaffold the wiki from your current codebase.
 - Pages are living state (updated in place); `log.md` is history (append-only); `raw/` is immutable.
-- Run `/tails-end` when you finish a session: decisions, rejected approaches, and gotchas from the session memory are filed into `log.md` and the affected pages, so the next session starts with them.
+- Run `/tails-end` when you finish a session: decisions, rejected approaches, and gotchas from the session memory are filed into `log.md` and the affected pages, and `handoff.md` is rewritten with the next step, so the next session (in any agent) starts with them.
 - Run `/tails-wiki-query <topic> [--save]` for targeted 1-hop context retrieval. Using `--save` files synthesized discoveries back into `wiki/synthesis/`, compounding knowledge instead of losing it in chat history.
 - Run `node scripts/wiki-search.js "<topic>"` for ranked (BM25) section search across the wiki, with zero dependencies.
 - Run `node scripts/wiki-graph.js` to inspect connectivity and automatically generate a Mermaid architecture graph.
@@ -204,6 +207,8 @@ Or check the scoreboard inside your agent with `/tails-gain`.
 
 LLM_Tails works with **Ponytail** — they can coexist. Ponytail governs code minimalism (Pillar 2). LLM_Tails adds architecture awareness (Pillar 1), anti-hallucination (Pillar 3), and consistency (Pillar 4) on top.
 
+It also works with **[context-mode](https://github.com/mksglu/context-mode)** and **[ai-memory](https://github.com/akitaonrails/ai-memory)**: install either alongside and LLM_Tails detects it and hands over the overlapping work (see [Context discipline & session memory](#context-discipline--session-memory)).
+
 It also works with **Caveman** — Caveman shrinks what the agent says, LLM_Tails governs what it builds and how honestly it communicates.
 
 ## Acknowledgments & Appreciation
@@ -221,6 +226,8 @@ It also works with **Caveman** — Caveman shrinks what the agent says, LLM_Tail
 - **[Tobi Lütke](https://github.com/tobi)** for **[qmd](https://github.com/tobi/qmd)** — referenced in the LLM Wiki pattern as a local markdown hybrid search engine tool for wiki querying.
 
 - **[mksglu](https://github.com/mksglu)** for **[context-mode](https://github.com/mksglu/context-mode)** — the inspiration for "think in code" context discipline, session memory across compaction, ranked local search, and the doctor/stats commands. These are independent clean-room implementations; no context-mode code is used (context-mode is licensed under ELv2).
+
+- **[Fabio Akita](https://github.com/akitaonrails)** for **[ai-memory](https://github.com/akitaonrails/ai-memory)** — the inspiration for cross-agent handoffs (`wiki/handoff.md`: where you left off, what failed, what remains open) and for flagging memory as it ages. Independent implementation; no ai-memory code is used.
 
 - **[Winston Koh](https://github.com/winstonkoh87)** for **[Athena-Public](https://github.com/winstonkoh87/Athena-Public)** — the inspiration for the explicit session close (`/tails-end`), the strict state-vs-history split in the wiki, and the "don't agree to please" honesty rule. Independent implementations; no Athena code is used.
 

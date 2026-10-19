@@ -24,7 +24,7 @@
     "url": "https://github.com/savadks95/LLM_Tails/issues"
   },
   "scripts": {
-    "test": "node tests/map.test.js && node tests/runtime.test.js && node tests/cursor-hooks.test.js && node tests/session.test.js && node tests/wiki-search.test.js && node tests/wiki-graph.test.js && node tests/benchmark.test.js",
+    "test": "node tests/map.test.js && node tests/runtime.test.js && node tests/cursor-hooks.test.js && node tests/session.test.js && node tests/companions.test.js && node tests/wiki-search.test.js && node tests/wiki-graph.test.js && node tests/benchmark.test.js",
     "bench": "node benchmarks/run.js",
     "wiki-graph": "node scripts/wiki-graph.js",
     "wiki-search": "node scripts/wiki-search.js",

@@ -13,7 +13,7 @@ Checklist before editing:
 - What patterns, naming conventions, and idioms does this codebase already use?
 - What's the error handling strategy here?
 
-If the codebase has a `wiki/` directory, read `wiki/index.md` first — it's the project knowledge base. Cite wiki pages when they inform your answer.
+If the codebase has a `wiki/` directory, read `wiki/index.md` first — it's the project knowledge base. Cite wiki pages when they inform your answer. If `wiki/handoff.md` exists and is not `Status: done`, read it: it is where the last session (any agent) left off.
 
 ## 2. Write minimal correct code (the ladder)
 

@@ -93,6 +93,9 @@ Optional env vars:
 | `TAILS_MAP_CHARS` | `2000` | Codebase map character budget |
 | `TAILS_MEMORY=0` | on | Disable session memory (Claude Code) |
 | `TAILS_MEMORY_CHARS` | `2000` | Restored session memory budget |
+| `TAILS_MEMORY=1` | off | Restore LLM_Tails memory after compaction even when context-mode is detected (it restores its own) |
+| `TAILS_HANDOFF=0` | on | Don't inject `wiki/handoff.md` at session start |
+| `TAILS_HANDOFF_CHARS` | `1500` | Handoff character budget at session start |
 | `TAILS_READ_MAX_KB` | `64` | Whole-file read size that triggers the opt-in large-read guard |
 
 ### Optional: large-read guard (Claude Code)

@@ -58,7 +58,7 @@ check('INFO', 'state directory', runtime.stateDir);
 const mode = runtime.readMode() || defaultMode();
 check(mode === 'off' ? 'WARN' : 'PASS', 'active mode', mode === 'off' ? 'off: hooks inject nothing' : mode);
 check('INFO', 'config file', fs.existsSync(getConfigPath()) ? getConfigPath() : `none (defaults; optional: ${getConfigPath()})`);
-const overrides = ['LLM_TAILS_DEFAULT_MODE', 'TAILS_MAP', 'TAILS_MAP_CHARS', 'TAILS_MEMORY', 'TAILS_MEMORY_CHARS', 'TAILS_READ_MAX_KB']
+const overrides = ['LLM_TAILS_DEFAULT_MODE', 'TAILS_MAP', 'TAILS_MAP_CHARS', 'TAILS_MEMORY', 'TAILS_MEMORY_CHARS', 'TAILS_HANDOFF', 'TAILS_HANDOFF_CHARS', 'TAILS_READ_MAX_KB']
   .filter((k) => process.env[k] !== undefined).map((k) => `${k}=${process.env[k]}`);
 check('INFO', 'env overrides', overrides.join(', ') || 'none');
 
@@ -75,9 +75,15 @@ guarded('context budget', () => {
   const { contextFootprint } = require('./stats');
   const f = contextFootprint(mode === 'off' ? 'full' : mode);
   check(f.sessionStart <= f.limit ? 'PASS' : 'WARN', 'context budget',
-    `session start ${f.sessionStart}/${f.limit} chars (rules ${f.rules}, map ${f.map} in ${f.mapMs} ms)`);
+    `session start ${f.sessionStart}/${f.limit} chars (rules ${f.rules}, companions ${f.companions}, handoff ${f.handoff}, map ${f.map} in ${f.mapMs} ms)`);
   check(f.map ? 'PASS' : 'WARN', 'codebase map', f.map ? `${f.map} chars` : 'empty (no recognised source files here, or TAILS_MAP=0)');
   check('INFO', 'session memory', `${f.sessions} session(s), ${(f.memoryBytes / 1024).toFixed(1)} KB on disk`);
+  check('INFO', 'companions', f.companionsFound.length
+    ? `${f.companionsFound.join(', ')} detected${f.companionsFound.includes('context-mode') && process.env.TAILS_MEMORY !== '1'
+      ? ': LLM_Tails skips its own memory restore after compaction (TAILS_MEMORY=1 keeps both)' : ''}`
+    : 'none (context-mode, ai-memory)');
+  check('INFO', 'handoff', f.handoff ? `wiki/handoff.md open, ${f.handoff} chars injected at session start`
+    : 'no open handoff (written by /tails-end)');
 });
 check('INFO', 'project wiki', fs.existsSync(path.join(process.cwd(), 'wiki', 'index.md'))
   ? 'wiki/index.md found' : 'none (optional: /tails-wiki-init)');

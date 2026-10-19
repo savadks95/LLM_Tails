@@ -47,6 +47,8 @@ instructions, keep its copied rule text aligned with `AGENTS.md`.
 - `skills/tails-help/SKILL.md`: quick reference
 - `hooks/tails-map.js`: automated codebase map (zero-dependency regex map of functions, classes, and exports at session start)
 - `hooks/tails-session.js`: session memory restored after compaction/resume (Claude Code hooks)
+- `hooks/tails-handoff.js`: injects an open `wiki/handoff.md` (written by `/tails-end`) at a fresh session start; hook-less agents read it via their rules file
+- `hooks/tails-companions.js`: detects context-mode / ai-memory in Claude Code config so LLM_Tails cooperates instead of duplicating them
 - `hooks/tails-read-guard.js`: opt-in large whole-file read guard (Claude Code PreToolUse, added via settings.json)
 - `scripts/wiki-search.js`: zero-dependency BM25 section search over `wiki/`
 - `AGENTS.md`: compact always-on instruction set for agents without skill support

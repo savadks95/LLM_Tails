@@ -37,7 +37,7 @@ Before ANY code change, build the map:
 2. **Trace callers** — grep every caller of the function you're about to modify.
 3. **Trace callees** — follow what the modified code calls downstream.
 4. **Map conventions** — naming, file organization, error strategy, import style.
-5. **Check the wiki** — if `wiki/index.md` exists, read it first. It's the project memory.
+5. **Check the wiki** — if `wiki/index.md` exists, read it first. It's the project memory. An open `wiki/handoff.md` is where the last session stopped: start there.
 
 The understanding phase is never lazy. Read fully, trace the whole flow, then act.
 

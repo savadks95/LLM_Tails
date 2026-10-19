@@ -1,5 +1,5 @@
 [command]
 name = "tails-end"
-description = "Close the session: distill decisions and learnings into the project wiki."
+description = "Close the session: distill decisions and learnings into the project wiki and write the handoff."
 args_hint = "[notes]"
 skill = "tails-end"
