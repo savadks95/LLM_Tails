@@ -13,6 +13,15 @@ Health-check the project wiki against the current codebase.
 
 ## Checks
 
+0. **Mechanical first.** Run from the project root:
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/context-lint.js"
+   ```
+   It lists stale references in `wiki/` and in the files agents read as truth (`AGENTS.md`,
+   `CLAUDE.md`, rule files): backticked paths that no longer exist, `file:L<n>` past the end of
+   the file, `npm run` scripts that are gone. Report each one under **Stale**; then do the
+   judgment checks below, which a script can't.
+
 1. **Stale** — wiki page describes code that has since changed. Compare key
    claims in wiki pages against the actual code they reference.
 

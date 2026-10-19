@@ -28,7 +28,8 @@ various AI coding agents.
 
 Keep adapters thin. When a host supports skills or hooks, point at the existing
 `skills/` and `hooks/` directories. When a host only supports project
-instructions, keep its copied rule text aligned with `AGENTS.md`.
+instructions, add its file to `scripts/sync-rules.js` (rendered from `AGENTS.md` or
+`rules/compact.md`) instead of hand-copying rule text; `npm test` fails when a copy drifts.
 
 ## Portable Behavior
 
@@ -47,6 +48,12 @@ instructions, keep its copied rule text aligned with `AGENTS.md`.
 - `skills/tails-help/SKILL.md`: quick reference
 - `hooks/tails-map.js`: automated codebase map (zero-dependency regex map of functions, classes, and exports at session start)
 - `hooks/tails-session.js`: session memory restored after compaction/resume (Claude Code hooks)
+- `hooks/tails-handoff.js`: injects an open `wiki/handoff.md` (written by `/tails-end`) at a fresh session start; hook-less agents read it via their rules file
+- `hooks/tails-companions.js`: detects context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, qmd and caveman in Claude Code config so LLM_Tails cooperates instead of duplicating them
+- `hooks/tails-guard.js`: opt-in guard patterns (`tails-guard:` lines in AGENTS.md / CLAUDE.md) that ask before a matching command or edit (Claude Code PreToolUse)
+- `hooks/tails-test-check.js`: `ultra` only, sends the agent back once when a turn changed source but no test (Claude Code Stop)
+- `scripts/context-lint.js`: stale paths, line refs and `npm run` scripts in AGENTS.md, CLAUDE.md, rule files and `wiki/`
+- `scripts/sync-rules.js`: generates every per-agent rule file from `AGENTS.md` and `rules/compact.md`
 - `hooks/tails-read-guard.js`: opt-in large whole-file read guard (Claude Code PreToolUse, added via settings.json)
 - `scripts/wiki-search.js`: zero-dependency BM25 section search over `wiki/`
 - `AGENTS.md`: compact always-on instruction set for agents without skill support

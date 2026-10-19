@@ -24,13 +24,16 @@
     "url": "https://github.com/savadks95/LLM_Tails/issues"
   },
   "scripts": {
-    "test": "node tests/map.test.js && node tests/runtime.test.js && node tests/cursor-hooks.test.js && node tests/session.test.js && node tests/wiki-search.test.js && node tests/wiki-graph.test.js && node tests/benchmark.test.js",
+    "test": "node tests/map.test.js && node tests/runtime.test.js && node tests/cursor-hooks.test.js && node tests/session.test.js && node tests/companions.test.js && node tests/guards.test.js && node tests/wiki-search.test.js && node tests/wiki-graph.test.js && node tests/benchmark.test.js && node scripts/sync-rules.js --check",
     "bench": "node benchmarks/run.js",
     "wiki-graph": "node scripts/wiki-graph.js",
     "wiki-search": "node scripts/wiki-search.js",
     "doctor": "node scripts/doctor.js",
     "stats": "node scripts/stats.js",
-    "memory": "node scripts/memory.js"
+    "memory": "node scripts/memory.js",
+    "bench:live": "npx promptfoo eval -c benchmarks/live/promptfooconfig.yaml",
+    "sync-rules": "node scripts/sync-rules.js",
+    "context-lint": "node scripts/context-lint.js"
   },
   "files": [
     "AGENTS.md",
@@ -39,7 +42,8 @@
     "commands/",
     "scripts/",
     "benchmarks/",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "publishConfig": {
     "access": "public"

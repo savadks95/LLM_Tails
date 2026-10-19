@@ -17,9 +17,26 @@ const KEEP_LINES = 300;
 const TEXT_MAX = 200;
 const STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Provider token shapes adapted from gitleaks config/gitleaks.toml
+// (MIT, Copyright (c) 2019 Zachary Rice; see THIRD_PARTY_NOTICES.md).
+const TOKEN_SHAPES = [
+  'sk-[A-Za-z0-9_-]{16,}', // OpenAI, Anthropic
+  '(?:sk|rk)_(?:test|live|prod)_[A-Za-z0-9]{10,99}', // Stripe
+  'gh[pousr]_[0-9A-Za-z]{36}', 'github_pat_\\w{22,}', // GitHub
+  'glpat-[\\w-]{20}', // GitLab
+  'xox[abpre]-[A-Za-z0-9-]{10,}', 'hooks\\.slack\\.com/(?:services|workflows|triggers)/[A-Za-z0-9+/]{43,56}', // Slack
+  '(?:A3T[A-Z0-9]|AKIA|ASIA|ABIA|ACCA)[A-Z2-7]{16}', // AWS
+  'AIza[\\w-]{35}', // Google Cloud
+  'npm_[A-Za-z0-9]{36}', 'pypi-AgEIcHlwaS5vcmc[\\w-]{50,1000}', // npm, PyPI
+  'hf_[A-Za-z]{34}', // Hugging Face
+  'SG\\.[A-Za-z0-9=_.-]{66}', 'SK[0-9a-fA-F]{32}', // SendGrid, Twilio
+  'dop_v1_[a-f0-9]{64}', 'HRKU-AA[0-9A-Za-z_-]{58}', 'shpat_[a-fA-F0-9]{32}', // DigitalOcean, Heroku, Shopify
+  'ey[A-Za-z0-9]{17,}\\.ey[A-Za-z0-9/\\\\_-]{17,}\\.(?:[A-Za-z0-9/\\\\_-]{10,}={0,2})?', // JWT
+];
+
 const SECRET_PATTERNS = [
   [/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(-----END [A-Z ]*PRIVATE KEY-----|$)/g, '[REDACTED KEY]'],
-  [/\b(?:sk-[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[abpr]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,})/g, '[REDACTED]'],
+  [new RegExp(`\\b(?:${TOKEN_SHAPES.join('|')})`, 'g'), '[REDACTED]'],
   [/\b(Bearer)\s+[A-Za-z0-9._~+/-]{8,}=*/gi, '$1 [REDACTED]'],
   [/(\/\/[^/\s:@]+:)[^@\s/]+@/g, '$1[REDACTED]@'],
   [/((?:api[_-]?key|secret|token|password|passwd|pwd)[\w-]*["']?\s*[:=]\s*)(["']?)[^\s"',;]+\2/gi, '$1[REDACTED]'],

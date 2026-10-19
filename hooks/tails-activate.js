@@ -10,7 +10,12 @@ const {
   clearMode,
   cursorRuleNotice,
   cursorRulePath,
+  isCodeBuddy,
+  isCodex,
+  isCopilot,
   isCursor,
+  isQoder,
+  projectDir,
   readHookInput,
   readMode,
   setMode,
@@ -53,29 +58,58 @@ function activate(requestedMode, input = {}) {
 
   // 1. Core LLM_Tails instructions for active level
   let output = getTailsInstructions(mode);
+  const dir = projectDir || process.cwd();
 
-  // 2. Session memory (Pillars 1 & 4): fresh session starts a clean log; after compaction or
+  // 2. Companions (context-mode, ai-memory): say how the work is split instead of duplicating it.
+  // Detection reads Claude Code config, so only on Claude Code itself.
+  let companions = [];
+  if (!isCopilot && !isCodex && !isQoder && !isCodeBuddy && !isCursor) {
+    try {
+      const { companionNotes, detectCompanions } = require('./tails-companions');
+      companions = detectCompanions(dir);
+      const notes = companionNotes(companions);
+      if (notes) output += '\n\n' + notes;
+    } catch (_) {}
+  }
+
+  // 3. Session memory (Pillars 1 & 4): fresh session starts a clean log; after compaction or
   // resume, restore what was done and decided. Memory beats the map: the map can be re-derived.
-  // Fail-open everywhere: never block session start.
+  // context-mode restores its own snapshot after compaction: don't inject the same facts twice
+  // (TAILS_MEMORY=1 keeps both). Fail-open everywhere: never block session start.
+  const restoreMemory = !companions.includes('context-mode') || process.env.TAILS_MEMORY === '1';
   try {
     const session = require('./tails-session');
     if (RESTORE_SOURCES.has(input.source)) {
-      const id = session.readEvents(input.session_id).length
-        ? input.session_id
-        : session.latestSessionId();
-      const memory = session.buildSessionSummary(id, undefined,
-        Math.min(Number(process.env.TAILS_MEMORY_CHARS || 2000), CONTEXT_LIMIT - output.length - 2));
-      if (memory) output += '\n\n' + memory;
+      if (restoreMemory) {
+        const id = session.readEvents(input.session_id).length
+          ? input.session_id
+          : session.latestSessionId();
+        const memory = session.buildSessionSummary(id, undefined,
+          Math.min(Number(process.env.TAILS_MEMORY_CHARS || 2000), CONTEXT_LIMIT - output.length - 2));
+        if (memory) output += '\n\n' + memory;
+      }
     } else if (input.session_id) {
       session.startSession(input.session_id);
     }
   } catch (_) {}
 
-  // 3. Automated Codebase Map (Pillars 1 & 2): instant map of existing functions, classes, exports
+  // 4. Handoff (Pillar 1): a new session picks up where the last one left off, whichever agent ran it.
+  // After compaction/resume the session memory above already covers it.
+  if (!RESTORE_SOURCES.has(input.source)) {
+    try {
+      const { BUDGET, readHandoff } = require('./tails-handoff');
+      const handoff = readHandoff(dir, Math.min(BUDGET, CONTEXT_LIMIT - output.length - 2));
+      if (handoff) output += '\n\n' + handoff;
+    } catch (_) {}
+  }
+
+  // 5. Automated Codebase Map (Pillars 1 & 2): instant map of existing functions, classes, exports
   if (mode !== 'review' && process.env.TAILS_MAP !== '0') {
     try {
-      const { BUDGET, buildMap } = require('./tails-map');
-      const budget = Math.min(BUDGET, CONTEXT_LIMIT - output.length - 2);
+      const { BUDGET, GRAPH_BUDGET, buildMap } = require('./tails-map');
+      // A code-graph companion answers structure questions better: keep only the top of the map.
+      const cap = companions.includes('codebase-memory-mcp') ? Math.min(BUDGET, GRAPH_BUDGET) : BUDGET;
+      const budget = Math.min(cap, CONTEXT_LIMIT - output.length - 2);
       const map = budget > 200 ? buildMap(process.cwd(), budget) : '';
       if (map) {
         output += '\n\n' + map;

@@ -3,8 +3,8 @@
 //
 // Lists the top-level functions, classes, types and exports of the project's source files, one line
 // per folder, inside a character budget. Zero-dependency: `git ls-files` (or directory walk)
-// plus regex per language. Tests, generated, and vendored files are skipped;
-// shared code (utils, lib, services, components, hooks, models) is prioritized.
+// plus regex per language. Tests, generated, and vendored files are skipped. Names and folders
+// are ranked by how many other files use them; shared code (utils, lib, services...) breaks ties.
 // Also detects the persistent project wiki (wiki/index.md) when available.
 
 const fs = require('fs');
@@ -12,10 +12,13 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const BUDGET = Number(process.env.TAILS_MAP_CHARS || 2000);
+const GRAPH_BUDGET = 600; // when codebase-memory-mcp is detected (see tails-companions.js)
 const MAX_FILES = 4000;
 const HEAD_BYTES = 65536;
 const DEADLINE_MS = 2000;
-const HEADER = 'Codebase map (what already exists; reuse first, read a file only when you need its details):';
+const MAX_READ_BYTES = 16 * 1024 * 1024;
+const IDENT = /[A-Za-z_$][\w$]{2,}/g;
+const HEADER = 'Codebase map (what already exists, most-used first; reuse first, read a file only when you need its details):';
 const SRC = /\.(py|js|jsx|mjs|cjs|ts|tsx|go|rs|rb|java|kt|scala|php|swift|cs)$/;
 const SKIP_DIR = /(^|\/)(node_modules|\.git|dist|build|out|vendor|venv|\.venv|__pycache__|coverage|\.next|target|migrations|versions|fixtures|tests?|__tests__|spec)(\/|$)/;
 const SKIP_FILE = /(^|\/)(test_[^/]*|[^/]*(_test|\.test|\.spec|\.gen|\.min|\.d)\.[a-z]+)$/;
@@ -100,6 +103,24 @@ function readHead(full) {
   }
 }
 
+// Reference ranking (the repo-map idea from aider, Apache-2.0; reimplemented without tree-sitter):
+// a name that many other files mention is what the agent most likely needs to reuse. Score =
+// number of other files using the name, divided by how many files define it (so `main`, `init`
+// and other generic names don't win). Names under 3 chars are too ambiguous to count.
+function rankNames(parsed) {
+  const key = (n) => n.split('.').pop();
+  const definedIn = new Map();
+  for (const p of parsed) for (const n of new Set(p.names.map(key))) definedIn.set(n, (definedIn.get(n) || 0) + 1);
+  const usedBy = new Map();
+  for (const p of parsed) {
+    const own = new Set(p.names.map(key));
+    for (const id of p.ids) {
+      if (definedIn.has(id) && !own.has(id)) usedBy.set(id, (usedBy.get(id) || 0) + 1);
+    }
+  }
+  return (n) => (key(n).length < 3 ? 0 : (usedBy.get(key(n)) || 0) / definedIn.get(key(n)));
+}
+
 function buildMap(root = process.cwd(), budget = BUDGET) {
   const deadline = Date.now() + DEADLINE_MS;
   const files = listFiles(root)
@@ -107,12 +128,40 @@ function buildMap(root = process.cwd(), budget = BUDGET) {
     .slice(0, MAX_FILES)
     .sort((a, b) => (SHARED.test(b) - SHARED.test(a)) || a.localeCompare(b));
 
-  // Group by folder first (no I/O), in priority order: shared code first.
-  const dirs = new Map();
+  // 1. Read heads (shared code first) until the time or byte budget runs out.
+  const parsed = [];
+  let bytes = 0;
+  let unread = 0;
   for (const f of files) {
-    const dir = path.dirname(f) === '.' ? '.' : path.dirname(f).replace(/\\/g, '/');
-    dirs.set(dir, [...(dirs.get(dir) || []), f]);
+    if (Date.now() > deadline || bytes > MAX_READ_BYTES) { unread++; continue; }
+    try {
+      const full = path.join(root, f);
+      if (!fs.lstatSync(full).isFile()) continue;
+      const text = readHead(full);
+      bytes += text.length;
+      parsed.push({ f, names: namesIn(f, text), ids: new Set(text.match(IDENT) || []) });
+    } catch (e) { continue; }
   }
+  const score = rankNames(parsed);
+
+  // 2. Group by folder. Inside a folder: most-used names first; unused names keep the old
+  // per-file cap so one big file can't crowd out its neighbours. Folders: most-used first.
+  const dirs = new Map();
+  for (const p of parsed) {
+    if (!p.names.length) continue;
+    const dir = path.dirname(p.f) === '.' ? '.' : path.dirname(p.f).replace(/\\/g, '/');
+    dirs.set(dir, [...(dirs.get(dir) || []), p]);
+  }
+  const ranked = [...dirs].map(([dir, dirFiles]) => {
+    const cap = dirFiles.length > 8 ? 1 : 3;
+    const names = [];
+    for (const p of dirFiles) {
+      p.names.forEach((n, i) => { if (score(n) > 0 || i < cap) names.push(n); });
+    }
+    const unique = [...new Set(names)].sort((a, b) => score(b) - score(a));
+    const weight = unique.slice(0, 5).reduce((sum, n) => sum + score(n), 0);
+    return { dir, names: unique, weight, shared: SHARED.test(dir) };
+  }).sort((a, b) => (b.weight - a.weight) || (b.shared - a.shared) || a.dir.localeCompare(b.dir));
 
   const wikiNotice = fs.existsSync(path.join(root, 'wiki', 'index.md'))
     ? 'Project wiki detected at wiki/ (index.md exists): read wiki/index.md for architectural memory before exploring from scratch.'
@@ -121,22 +170,11 @@ function buildMap(root = process.cwd(), budget = BUDGET) {
   // The budget covers the whole output: header, folder lines, footer, wiki notice.
   const lines = [];
   let used = HEADER.length + 40 + (wikiNotice ? wikiNotice.length + 1 : 0);
-  let skipped = 0;
+  let skipped = unread ? 1 : 0;
   let misses = 0;
-  for (const [dir, dirFiles] of dirs) {
-    // Stop reading once nothing more fits (5 misfits in a row) or time is up; the rest are counted.
-    if (budget - used < 40 || misses >= 5 || Date.now() > deadline) { skipped++; continue; }
-    const perFile = [];
-    for (const f of dirFiles) {
-      try {
-        const full = path.join(root, f);
-        if (!fs.lstatSync(full).isFile()) continue;
-        const names = namesIn(f, readHead(full));
-        if (names.length) perFile.push(names);
-      } catch (e) { continue; }
-    }
-    if (!perFile.length) continue;
-    const names = [...new Set(perFile.flatMap((n) => n.slice(0, perFile.length > 8 ? 1 : 3)))];
+  for (const { dir, names } of ranked) {
+    // Stop once nothing more fits (5 misfits in a row); the rest are counted.
+    if (budget - used < 40 || misses >= 5) { skipped++; continue; }
     const line = `${dir}/: ${names.slice(0, 30).join(', ')}${names.length > 30 ? ', ...' : ''}`;
     if (used + line.length + 1 > budget) { skipped++; misses++; continue; }
     misses = 0;
@@ -150,7 +188,7 @@ function buildMap(root = process.cwd(), budget = BUDGET) {
   return [mapSection, wikiNotice].filter(Boolean).join('\n');
 }
 
-module.exports = { BUDGET, buildMap };
+module.exports = { BUDGET, GRAPH_BUDGET, buildMap };
 
 if (require.main === module) {
   const out = buildMap(process.argv[2] || process.cwd());

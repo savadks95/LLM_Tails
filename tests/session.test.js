@@ -35,6 +35,11 @@ try {
   assert.ok(!session.redact('Authorization: Bearer abc.def.ghi123').includes('abc.def'));
   assert.ok(!session.redact('https://bob:s3cret@example.com').includes('s3cret'));
   assert.strictEqual(session.redact('rename tokenize() helper'), 'rename tokenize() helper');
+  for (const token of ['sk_live_' + 'a'.repeat(24), 'glpat-' + 'x'.repeat(20), 'npm_' + 'a'.repeat(36),
+    'hf_' + 'a'.repeat(34), 'ASIA' + 'A'.repeat(16), 'gho_' + 'a'.repeat(36), 'dop_v1_' + 'a'.repeat(64),
+    'eyJhbGciOiJIUzI1NiJ9xx.eyJzdWIiOiIxMjM0NTY3ODkwIn0.' + 's'.repeat(20)]) {
+    assert.ok(!session.redact(`deploy with ${token} now`).includes(token), `gitleaks shape masked: ${token.slice(0, 8)}`);
+  }
 
   // 2. Hooks record prompts, corrections, files, tasks and errors
   const id = 'sess-1';

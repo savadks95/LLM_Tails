@@ -16,7 +16,9 @@ const { defaultMode } = require('../hooks/tails-config');
 const { getSubagentInstructions, getTailsInstructions } = require('../hooks/tails-instructions');
 const { readMode } = require('../hooks/tails-runtime');
 const { CONTEXT_LIMIT } = require('../hooks/tails-activate');
-const { BUDGET, buildMap } = require('../hooks/tails-map');
+const { BUDGET, GRAPH_BUDGET, buildMap } = require('../hooks/tails-map');
+const { companionNotes, detectCompanions } = require('../hooks/tails-companions');
+const handoff = require('../hooks/tails-handoff');
 const session = require('../hooks/tails-session');
 
 const ROOT = path.join(__dirname, '..');
@@ -24,9 +26,14 @@ const tokens = (chars) => Math.round(chars / 4);
 
 function contextFootprint(mode = readMode() || defaultMode(), cwd = process.cwd()) {
   const rules = getTailsInstructions(mode).length;
+  const companionsFound = detectCompanions(cwd);
+  const companions = companionNotes(companionsFound).length;
+  const handoffChars = handoff.readHandoff(cwd, Math.min(handoff.BUDGET, CONTEXT_LIMIT - rules - companions - 4)).length;
+  const used = rules + companions + handoffChars;
   const started = Date.now();
   const map = process.env.TAILS_MAP === '0' ? 0
-    : buildMap(cwd, Math.min(BUDGET, CONTEXT_LIMIT - rules - 2)).length;
+    : buildMap(cwd, Math.min(companionsFound.includes('codebase-memory-mcp') ? GRAPH_BUDGET : BUDGET,
+      CONTEXT_LIMIT - used - 2)).length;
   const mapMs = Date.now() - started;
   const latest = session.latestSessionId();
   const memory = latest ? session.buildSessionSummary(latest).length : 0;
@@ -43,9 +50,12 @@ function contextFootprint(mode = readMode() || defaultMode(), cwd = process.cwd(
   return {
     mode,
     rules,
+    companions,
+    companionsFound,
+    handoff: handoffChars,
     map,
     mapMs,
-    sessionStart: rules + map,
+    sessionStart: used + map,
     memory,
     limit: CONTEXT_LIMIT,
     subagent: getSubagentInstructions(mode).length,
@@ -66,11 +76,14 @@ function report(f) {
     '',
     'Injected once at session start:',
     row('rules', f.rules),
+    row('companion notes', f.companions, f.companionsFound.length ? `(${f.companionsFound.join(', ')})` : '(none detected)'),
+    row('handoff', f.handoff, f.handoff ? '(wiki/handoff.md)' : '(no open handoff)'),
     row('codebase map', f.map, `(built in ${f.mapMs} ms)`),
     row('total', f.sessionStart, `(cap ${f.limit.toLocaleString('en-US')})`),
     '',
     'Injected only after compaction / resume:',
-    row('session memory', f.memory, f.memory ? '' : '(none recorded yet)'),
+    row('session memory', f.memory, f.companionsFound.includes('context-mode') && process.env.TAILS_MEMORY !== '1'
+      ? '(skipped: context-mode restores its own)' : f.memory ? '' : '(none recorded yet)'),
     '',
     'Other:',
     row('per subagent (compact rules)', f.subagent),

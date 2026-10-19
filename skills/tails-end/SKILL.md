@@ -4,7 +4,9 @@ description: >
   Close a work session: distill what was decided and learned into the project
   wiki so it outlives the chat. Reads the session memory the hooks recorded,
   appends one history entry to wiki/log.md, updates the living wiki pages the
-  session affected, and flags pages it made stale. Use for "/tails-end",
+  session affected, flags pages it made stale, and writes wiki/handoff.md so the
+  next session (any agent, machine or teammate) picks up where this one left
+  off. Use for "/tails-end",
   "tails end", "wrap up", "end session", "save what we learned", or before
   closing a long session.
 argument-hint: "[notes]"
@@ -41,12 +43,27 @@ Turn this session's working memory into durable project knowledge. Living state 
    - Update the living pages the session affected (`architecture.md`, `conventions.md`, `entities/*`) in place, citing code: `(see src/x.ts:L12)`.
    - A page the session made wrong: fix it, or mark `⚠️ stale since <date>: <what changed>` if it needs more than you know.
    - New page created → add it to `wiki/index.md`.
+   - Rewrite `wiki/handoff.md` (living state: replace the whole page, history stays in `log.md`). The next session's start hook injects it, and agents without hooks read it from their rules file, so keep it under ~1,200 characters:
+     ```
+     # Handoff
+     Updated: YYYY-MM-DD by <agent name>
+     Status: open
+     ## Where it stands
+     <one or two lines: what works now, what is half-done>
+     ## Next step
+     <the first concrete action, with file paths>
+     ## Don't retry
+     <rejected approaches and failed attempts, each with the reason>
+     ## Open questions
+     <what needs the user's decision>
+     ```
+     Nothing left to hand off (work finished, nothing open) → write `Status: done` with a one-line summary; a done handoff is not injected. Add `handoff.md` to `wiki/index.md` the first time.
 
 4. **No wiki?** Don't create one unasked. Print the distilled summary (same shape as the log entry) and suggest `/tails-wiki-init` if the project would benefit.
 
 ## Output
 
-At most five lines: what was filed where, pages updated, pages flagged stale, open items carried forward.
+At most five lines: what was filed where, pages updated, pages flagged stale, handoff status and next step.
 
 ## Boundaries
 
