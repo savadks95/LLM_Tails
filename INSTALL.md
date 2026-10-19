@@ -96,6 +96,7 @@ Optional env vars:
 | `TAILS_MEMORY=1` | off | Restore LLM_Tails memory after compaction even when context-mode is detected (it restores its own) |
 | `TAILS_HANDOFF=0` | on | Don't inject `wiki/handoff.md` at session start |
 | `TAILS_HANDOFF_CHARS` | `1500` | Handoff character budget at session start |
+| `ANTHROPIC_API_KEY` | none | Only for `npm run bench:live` (live-model benchmark via promptfoo) |
 | `TAILS_READ_MAX_KB` | `64` | Whole-file read size that triggers the opt-in large-read guard |
 
 ### Optional: large-read guard (Claude Code)
@@ -118,6 +119,34 @@ Advises (or in `ultra`, blocks) whole-file reads over `TAILS_READ_MAX_KB` and po
 ```
 
 Remove the entry to turn it off. `/tails-doctor` shows whether it is enabled.
+
+### Optional: guard patterns (Claude Code)
+
+Write a rule once with a pattern, and Claude Code asks you before a shell command or file edit that matches it (a heads-up through the normal permission prompt, never a block). Add lines like these anywhere in your project's `AGENTS.md` or `CLAUDE.md`:
+
+```
+<!-- tails-guard: /\bredis\b/i No Redis: single instance, keep rate limits in memory -->
+<!-- tails-guard: /(^|\/)migrations\// Never edit applied migrations; add a new one -->
+```
+
+The pattern is a JavaScript regex (flags after the closing `/`), matched against the Bash command or the edited file path; the rest of the line is the message. Like the read guard, the hook is off by default because every matched tool call would pay Node's startup time. To enable it, add to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "node \"/path/to/LLM_Tails/hooks/tails-guard.js\"", "timeout": 5 }
+        ]
+      }
+    ]
+  }
+}
+```
+
+`/tails-doctor` warns when your files contain guard lines but the hook is not enabled.
 
 Check your setup with `/tails-doctor` (or `node scripts/doctor.js` from your project) and the context cost with `/tails-stats`.
 

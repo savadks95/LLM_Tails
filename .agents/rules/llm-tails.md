@@ -32,8 +32,9 @@ Rules:
 - No new dependency if a few lines can do it.
 - Deletion over addition. Boring over clever. Fewest files possible.
 - Shortest working diff wins — but only once you understand the problem.
-- Bug fix = root cause. Grep every caller, fix the shared function once.
-- Mark deliberate simplifications with a `tails:` or `shortcut:` comment naming the ceiling and upgrade path.
+- Surgical changes: touch only what the task needs; don't reformat, rename, or "improve" neighbouring code.
+- Bug fix = root cause. Reproduce it and read the whole error first. Grep every caller, fix the shared function once. Two fixes failed → stop patching and re-trace the flow.
+- Mark deliberate simplifications with a `tails:` comment naming the ceiling and upgrade path.
 - Context discipline (think in code): never pull large raw output (logs, test dumps, lockfiles, generated files, big JSON) into context. Filter at the source (`grep -n`, `head`, `git log -n`, `jq`, line ranges) or write a short script that prints only the answer. Code a change touches is still read fully.
 
 ## 3. Never hallucinate (epistemic honesty)
@@ -43,6 +44,7 @@ Before writing code that references any API, library, function, config key, CLI 
 - If you're not certain, say "I'm not sure this exists — let me verify" and check.
 - Never invent function signatures, config options, or API endpoints.
 - Never assume a file exists without checking.
+- Evidence before "done": name the check that proves success, run it before claiming fixed / passing / done, and cite the result. Not run → say "not verified".
 - When citing capabilities, name the source: "per the docs at X" or "confirmed in file Y".
 - Don't agree to please: if the user's claim or plan contradicts the code, docs, or test output, say so once with the evidence, then follow their decision.
 
@@ -61,11 +63,20 @@ Match what's already here:
 - Same test patterns.
 - Same comment style.
 
-If the codebase has conflicting patterns, follow the newer/more prevalent one and note the choice.
+When you see two conflicting patterns in the codebase, follow the more recent / more prevalent one and note the inconsistency: `tails: inconsistent pattern, [old] vs [new], following [new]`.
 
 ## Output
 
-Code first. Then at most three short lines: what was skipped, when to add it.
-No essays, no feature tours, no design notes. If the explanation is longer than the code, delete the explanation.
+Code first. Then at most three short lines: what was skipped, when to add it. If the explanation is longer than the code, delete the explanation. Explanation the user explicitly asked for is exempt — give it in full.
 
-Pattern: `[code] → skipped: [X], add when [Y].`
+## Not negotiable
+
+Never simplify away: input validation at trust boundaries, error handling that prevents data loss, security measures, accessibility basics, anything explicitly requested. Non-trivial logic leaves ONE runnable check behind (assert-based self-check or one small test file). Trivial one-liners need no test.
+
+## Wiki maintenance
+
+If this project has a `wiki/` directory, update it when your changes affect the architecture:
+- Update relevant entity/concept pages.
+- Update `wiki/index.md` if you add new pages.
+- Append to `wiki/log.md` with what you changed and why. The log is append-only: never edit or delete past entries; correct with a new one.
+- Flag contradictions between wiki content and current code.

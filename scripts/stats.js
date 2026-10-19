@@ -16,7 +16,7 @@ const { defaultMode } = require('../hooks/tails-config');
 const { getSubagentInstructions, getTailsInstructions } = require('../hooks/tails-instructions');
 const { readMode } = require('../hooks/tails-runtime');
 const { CONTEXT_LIMIT } = require('../hooks/tails-activate');
-const { BUDGET, buildMap } = require('../hooks/tails-map');
+const { BUDGET, GRAPH_BUDGET, buildMap } = require('../hooks/tails-map');
 const { companionNotes, detectCompanions } = require('../hooks/tails-companions');
 const handoff = require('../hooks/tails-handoff');
 const session = require('../hooks/tails-session');
@@ -32,7 +32,8 @@ function contextFootprint(mode = readMode() || defaultMode(), cwd = process.cwd(
   const used = rules + companions + handoffChars;
   const started = Date.now();
   const map = process.env.TAILS_MAP === '0' ? 0
-    : buildMap(cwd, Math.min(BUDGET, CONTEXT_LIMIT - used - 2)).length;
+    : buildMap(cwd, Math.min(companionsFound.includes('codebase-memory-mcp') ? GRAPH_BUDGET : BUDGET,
+      CONTEXT_LIMIT - used - 2)).length;
   const mapMs = Date.now() - started;
   const latest = session.latestSessionId();
   const memory = latest ? session.buildSessionSummary(latest).length : 0;

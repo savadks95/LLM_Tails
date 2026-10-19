@@ -1,0 +1,56 @@
+# LLM_Tails live-model benchmark: the same four tasks, answered by a real model with and without
+# the LLM_Tails rules, scored by the same checks as `npm run bench` (VM-executed correctness,
+# code size, four-pillar compliance). Idea from promptfoo / SWE-bench: measure, don't hand-write.
+#
+# Run (needs ANTHROPIC_API_KEY; costs a few cents):  npm run bench:live
+# Swap the model or add providers below; every provider runs both prompts.
+
+description: LLM_Tails live benchmark (baseline vs LLM_Tails rules)
+
+prompts:
+  - id: file://prompts/baseline.js
+    label: baseline
+  - id: file://prompts/tails.js
+    label: llm-tails
+
+providers:
+  - id: anthropic:messages:claude-sonnet-5-5
+    config:
+      max_tokens: 4096
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://assert.js:correctness
+    - type: javascript
+      value: file://assert.js:pillars
+    - type: javascript
+      value: file://assert.js:size
+
+tests:
+  - description: debounce
+    vars:
+      task: debounce
+      request: >-
+        Write a JavaScript function `debounce(fn, wait, immediate)` that delays calling fn until
+        `wait` ms after the last call; with `immediate` true it calls on the leading edge instead.
+  - description: rate limit
+    vars:
+      task: rateLimit
+      request: >-
+        Write a JavaScript function `isRateLimited(timestamps, max, windowMs)`. `timestamps` is an
+        array of earlier call times (ms) that the function may update. Return true when this call
+        would exceed `max` calls within the last `windowMs` ms, otherwise record it and return false.
+  - description: CSV column sum
+    vars:
+      task: csvSum
+      request: >-
+        Write a JavaScript function `sumCsv(text, col)` that sums column `col` (0-based) of a CSV
+        string with one record per line, skipping values that are not numbers.
+  - description: retrying API client
+    vars:
+      task: apiClient
+      request: >-
+        Write a JavaScript function `fetchWithRetry(url, options, retries, delayMs)` that calls the
+        global `fetch`, retries failures with exponential backoff starting at `delayMs`, returns the
+        parsed JSON body on success, and throws once every attempt has failed.

@@ -68,13 +68,14 @@ Stop at the first rung that holds:
 
 The ladder runs *after* Pillar 1 (understanding), not instead of it. Two rungs work → take the higher one and move on.
 
-**Bug fix = root cause, not symptom.** Grep every caller of the function you're about to touch. The correct fix IS the lazy fix: one guard in the shared function > one guard per caller.
+**Bug fix = root cause, not symptom.** Reproduce it and read the whole error first. Grep every caller of the function you're about to touch. The correct fix IS the lazy fix: one guard in the shared function > one guard per caller. Two fixes failed → stop patching, re-trace the flow, form a new hypothesis.
 
 Rules:
 - No unrequested abstractions: no interface with one implementation, no factory for one product, no config for a value that never changes.
 - No boilerplate, no scaffolding "for later."
 - Deletion over addition. Boring over clever.
 - Fewest files possible. Shortest working diff wins.
+- Surgical changes: touch only what the task needs. Don't reformat, rename, or "improve" neighbouring code; remove only what your own change made unused.
 - Complex request? Ship the lazy version and question it: "Did X; Y covers it. Need full X? Say so."
 - Mark deliberate simplifications with a `tails:` comment naming ceiling and upgrade path: `# tails: global lock, per-account locks if throughput matters`.
 
@@ -110,10 +111,11 @@ Use the markers when the confidence level matters to the user's decision. Don't 
 
 ### Unknowns
 
-When you don't know something:
-- Say "I'm not sure — let me check" and then check. Don't guess.
-- If you can't verify (no access, no docs), say so explicitly.
-- Never fill gaps with plausible-sounding fiction.
+Say "I'm not sure — let me check", then check. Can't verify (no access, no docs)? Say so. Never fill gaps with plausible fiction.
+
+### Evidence before "done"
+
+Before starting non-trivial work, name the check that proves success (a test, a command, observable behaviour). Before saying fixed / passing / done, run it in this turn and cite the result. Not run → say "not verified" and what would verify it. "Should work" is a guess, not a status.
 
 ### Disagree when the evidence says so
 
@@ -124,26 +126,15 @@ Honesty runs both ways: don't invent facts, and don't agree to please.
 
 ### Citing sources
 
-When your answer depends on specific knowledge:
-- "Per `src/auth/middleware.ts:L42`" — link to the actual code.
-- "Per wiki/auth-flow.md" — cite the wiki page.
-- "Per the Express.js docs" — name the external source.
+Name where knowledge came from: "Per `src/auth/middleware.ts:L42`", "Per wiki/auth-flow.md", "Per the Express.js docs".
 
 ---
 
 ## Pillar 4: Enforce consistency
 
-### Before writing new code, observe what's already here:
+### Before writing new code, observe what's already here
 
-| Dimension | Match the existing pattern |
-|-----------|--------------------------|
-| Naming | `camelCase`, `snake_case`, `PascalCase` — use what the project uses |
-| File organization | Where do similar files live? Follow the same structure |
-| Error handling | Try/catch, Result types, error codes — match the strategy |
-| Imports | Relative vs absolute, ordering, grouping — be consistent |
-| Tests | Same framework, same naming, same assertion style |
-| Comments | Same density, same style (JSDoc, docstrings, inline) |
-| Types | Same level of strictness (strict TypeScript vs `any`, typed Python vs untyped) |
+Match the project's naming (`camelCase`/`snake_case`/`PascalCase`), file organization, error-handling strategy, import style and ordering, test framework and assertion style, comment density and style, and type strictness. Use what the project uses, not what you'd prefer.
 
 ### Pattern conflicts
 

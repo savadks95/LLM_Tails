@@ -63,6 +63,30 @@ try {
   assert.ok(both.includes("don't use Redis"), 'TAILS_MEMORY=1 keeps LLM_Tails memory as well');
   write(path.join(claude, 'settings.json'), {});
 
+  // 3b. The other companions: detected by plugin, MCP server name or command; notes are capped
+  write(path.join(project, '.mcp.json'), { mcpServers: {
+    context7: { command: 'npx', args: ['-y', '@upstash/context7-mcp'] },
+    lsp: { command: 'uvx', args: ['--from', 'git+https://github.com/oraios/serena', 'serena', 'start-mcp-server'] },
+    docs: { command: 'qmd', args: ['mcp'] },
+    graph: { command: 'codebase-memory-mcp' },
+  } });
+  write(path.join(claude, 'settings.json'), { enabledPlugins: { 'claude-mem@thedotmack': true, 'caveman@caveman': true } });
+  assert.deepStrictEqual(detectCompanions(project), ['claude-mem', 'context7', 'serena', 'codebase-memory-mcp', 'qmd', 'caveman']);
+  const all = ['context-mode', 'ai-memory', 'claude-mem', 'context7', 'serena', 'codebase-memory-mcp', 'qmd', 'caveman'];
+  const capped = companionNotes(all);
+  assert.ok(capped.length <= 1100 && capped.includes('Also active: caveman'), 'Notes stay inside their budget');
+  assert.ok(!detectCompanions(project).includes('ai-memory'), 'claude-mem is not ai-memory');
+  fs.mkdirSync(path.join(project, 'src'), { recursive: true });
+  for (let i = 0; i < 40; i++) fs.writeFileSync(path.join(project, 'src', `mod${i}.js`), `export function helperNumber${i}() {}\n`);
+  const withGraph = runHook('tails-activate.js', { session_id: 'sess-g', source: 'startup' });
+  const mapPart = withGraph.slice(withGraph.indexOf('Codebase map'));
+  assert.ok(withGraph.includes('find_referencing_symbols') && withGraph.includes('query-docs'));
+  assert.ok(mapPart.length > 0 && mapPart.length <= 600, `Map trimmed with a code graph (${mapPart.length})`);
+  assert.ok(withGraph.length <= CONTEXT_LIMIT);
+  fs.rmSync(path.join(project, 'src'), { recursive: true });
+  fs.unlinkSync(path.join(project, '.mcp.json'));
+  write(path.join(claude, 'settings.json'), {});
+
   // 4. Handoff: injected at a fresh start, closed by "Status: done", skipped after compaction
   const handoffFile = path.join(project, 'wiki', 'handoff.md');
   const today = new Date().toISOString().slice(0, 10);

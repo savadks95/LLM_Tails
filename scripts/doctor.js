@@ -81,9 +81,25 @@ guarded('context budget', () => {
   check('INFO', 'companions', f.companionsFound.length
     ? `${f.companionsFound.join(', ')} detected${f.companionsFound.includes('context-mode') && process.env.TAILS_MEMORY !== '1'
       ? ': LLM_Tails skips its own memory restore after compaction (TAILS_MEMORY=1 keeps both)' : ''}`
-    : 'none (context-mode, ai-memory)');
+    : 'none (checks: context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, qmd, caveman)');
   check('INFO', 'handoff', f.handoff ? `wiki/handoff.md open, ${f.handoff} chars injected at session start`
     : 'no open handoff (written by /tails-end)');
+});
+guarded('guards', () => {
+  const { loadGuards } = require('../hooks/tails-guard');
+  const n = loadGuards(process.cwd()).length;
+  let on = false;
+  try { on = fs.readFileSync(path.join(getClaudeDir(), 'settings.json'), 'utf8').includes('tails-guard.js'); } catch (_) {}
+  check(n && !on ? 'WARN' : 'INFO', 'guard patterns', n
+    ? `${n} tails-guard line(s) in AGENTS.md/CLAUDE.md; hook ${on ? 'enabled' : 'NOT enabled (see INSTALL.md)'}`
+    : 'none (optional: tails-guard lines in AGENTS.md/CLAUDE.md)');
+});
+guarded('context lint', () => {
+  const { lint } = require('./context-lint');
+  const { files, findings } = lint(process.cwd());
+  check(findings.length ? 'WARN' : 'PASS', 'context lint', findings.length
+    ? `${findings.length} stale reference(s) in context files: run node scripts/context-lint.js`
+    : `${files.length} context file(s) clean`);
 });
 check('INFO', 'project wiki', fs.existsSync(path.join(process.cwd(), 'wiki', 'index.md'))
   ? 'wiki/index.md found' : 'none (optional: /tails-wiki-init)');

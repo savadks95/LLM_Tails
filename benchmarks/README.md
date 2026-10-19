@@ -44,6 +44,15 @@ Run the suite locally with zero external dependencies:
 node benchmarks/run.js
 ```
 
+### Live-model run
+
+`benchmarks/live/` sends the same four tasks to a real model through [promptfoo](https://github.com/promptfoo/promptfoo), once with no rules (`prompts/baseline.js`) and once with `AGENTS.md` as the system prompt (`prompts/tails.js`). `assert.js` reuses the checks above: correctness is the pass/fail gate; four-pillar compliance and code size are reported as scores. Needs `ANTHROPIC_API_KEY`:
+
+```bash
+npm run bench:live        # npx promptfoo eval -c benchmarks/live/promptfooconfig.yaml
+npx promptfoo view        # side-by-side results in the browser
+```
+
 ### Files
 - [`loc.js`](loc.js): LOC measurement and code block extraction.
 - [`correctness.js`](correctness.js): Real-execution correctness gates (VM sandbox).

@@ -32,7 +32,8 @@ Rules:
 - No new dependency if a few lines can do it.
 - Deletion over addition. Boring over clever. Fewest files possible.
 - Shortest working diff wins — but only once you understand the problem.
-- Bug fix = root cause. Grep every caller, fix the shared function once.
+- Surgical changes: touch only what the task needs; don't reformat, rename, or "improve" neighbouring code.
+- Bug fix = root cause. Reproduce it and read the whole error first. Grep every caller, fix the shared function once. Two fixes failed → stop patching and re-trace the flow.
 - Mark deliberate simplifications with a `tails:` comment naming the ceiling and upgrade path.
 - Context discipline (think in code): never pull large raw output (logs, test dumps, lockfiles, generated files, big JSON) into context. Filter at the source (`grep -n`, `head`, `git log -n`, `jq`, line ranges) or write a short script that prints only the answer. Code a change touches is still read fully.
 
@@ -43,6 +44,7 @@ Before writing code that references any API, library, function, config key, CLI 
 - If you're not certain, say "I'm not sure this exists — let me verify" and check.
 - Never invent function signatures, config options, or API endpoints.
 - Never assume a file exists without checking.
+- Evidence before "done": name the check that proves success, run it before claiming fixed / passing / done, and cite the result. Not run → say "not verified".
 - When citing capabilities, name the source: "per the docs at X" or "confirmed in file Y".
 - Don't agree to please: if the user's claim or plan contradicts the code, docs, or test output, say so once with the evidence, then follow their decision.
 

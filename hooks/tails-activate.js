@@ -106,8 +106,10 @@ function activate(requestedMode, input = {}) {
   // 5. Automated Codebase Map (Pillars 1 & 2): instant map of existing functions, classes, exports
   if (mode !== 'review' && process.env.TAILS_MAP !== '0') {
     try {
-      const { BUDGET, buildMap } = require('./tails-map');
-      const budget = Math.min(BUDGET, CONTEXT_LIMIT - output.length - 2);
+      const { BUDGET, GRAPH_BUDGET, buildMap } = require('./tails-map');
+      // A code-graph companion answers structure questions better: keep only the top of the map.
+      const cap = companions.includes('codebase-memory-mcp') ? Math.min(BUDGET, GRAPH_BUDGET) : BUDGET;
+      const budget = Math.min(cap, CONTEXT_LIMIT - output.length - 2);
       const map = budget > 200 ? buildMap(process.cwd(), budget) : '';
       if (map) {
         output += '\n\n' + map;
