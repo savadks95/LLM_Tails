@@ -2,6 +2,18 @@
   <img src="assets/banner.jpg" alt="LLM_Tails — Disciplined AI Coding Mode">
 </p>
 
+## Support
+
+If you find LLM_Tails helpful, consider buying me a coffee:
+
+<p align="center">
+  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
+  <br><br>
+  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
+    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
+  </a>
+</p>
+
 
 <p align="center">
   <em>Understand deeply. Write minimally. Never hallucinate. Stay consistent.</em>
@@ -289,18 +301,6 @@ LLM_Tails exists to synthesize and extend these two great concepts into a unifie
 Bug reports, live-agent results, and "it made my agent worse at X" stories are all useful: open an [issue](https://github.com/savadks95/LLM_Tails/issues). PRs for new agent adapters are welcome; see [docs/agent-portability.md](docs/agent-portability.md) for the adapter rule.
 
 Rule files are generated: edit `AGENTS.md` (full rules) or `rules/compact.md` (short rules), then run `npm run sync-rules`. `npm test` fails if any per-agent copy has drifted.
-
-## Support
-
-If you find LLM_Tails helpful, consider buying me a coffee:
-
-<p align="center">
-  <img src="assets/buymeacoffee-qr.png" alt="Buy Me A Coffee QR Code" width="180">
-  <br><br>
-  <a href="https://buymeacoffee.com/MrNotorious" target="_blank">
-    <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=MrNotorious&button_colour=FFDD00&font_colour=000000&font_family=Bree&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee">
-  </a>
-</p>
 
 ## License
 
