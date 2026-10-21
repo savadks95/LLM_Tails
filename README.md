@@ -23,7 +23,7 @@ If you find LLM_Tails helpful, consider buying me a coffee:
   <img src="https://img.shields.io/badge/pillars-4-111111?style=flat-square" alt="4 pillars">
   <img src="https://img.shields.io/badge/skills-13-111111?style=flat-square" alt="13 skills">
   <img src="https://img.shields.io/badge/agents-20+-111111?style=flat-square" alt="20+ agents">
-  <img src="https://img.shields.io/badge/version-v2.0.0-111111?style=flat-square" alt="v2.0.0">
+  <img src="https://img.shields.io/badge/version-v3.0.0-111111?style=flat-square" alt="v3.0.0">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
 </p>
 

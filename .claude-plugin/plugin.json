@@ -1,6 +1,6 @@
 {
   "name": "llm-tails",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Disciplined AI coding mode. Four pillars: understand first, minimal code, no hallucination, enforce consistency.",
   "hooks": "hooks/claude-hooks.json",
   "skills": "skills"
