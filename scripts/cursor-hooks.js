@@ -31,6 +31,10 @@ function readConfig(file) {
   try {
     config = JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
   } catch (e) {
+    if (e instanceof SyntaxError) {
+      throw new Error(file + ' is not plain JSON (comments or trailing commas?); nothing was changed. ' +
+        'Merge ' + TEMPLATE + ' into it by hand.');
+    }
     if (e.code !== 'ENOENT') throw e;
   }
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
@@ -48,9 +52,21 @@ function readConfig(file) {
   return config;
 }
 
+// Before the first change to a file the user wrote, keep their copy once; keep CRLF line endings;
+// write to a temp file and rename, so a crash never leaves a half-written hooks.json.
+// Ideas from Hindsight (MIT), coding-agents src/installer.ts.
 function writeConfig(file, config) {
+  let before = null;
+  try { before = fs.readFileSync(file, 'utf8'); } catch (_) {}
+  let text = JSON.stringify(config, null, 2) + '\n';
+  if (before && before.includes('\r\n')) text = text.replace(/\n/g, '\r\n');
+  if (text === before) return;
+  const backup = file + '.llm-tails-backup';
+  if (before !== null && !TAILS_HOOK.test(before) && !fs.existsSync(backup)) fs.writeFileSync(backup, before, 'utf8');
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\n', 'utf8');
+  const tmp = file + '.llm-tails-tmp';
+  fs.writeFileSync(tmp, text, 'utf8');
+  fs.renameSync(tmp, file);
 }
 
 function loadTemplate(rootDir) {
@@ -117,6 +133,7 @@ if (require.main === module) {
     try {
       const file = install(scope);
       console.log(`Installed LLM_Tails Cursor hooks into ${file}`);
+      if (fs.existsSync(file + '.llm-tails-backup')) console.log(`Your original is kept at ${file}.llm-tails-backup`);
     } catch (e) {
       console.error(e.message);
       process.exit(1);

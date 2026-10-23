@@ -33,6 +33,7 @@ Process a new source and integrate its knowledge into the project wiki.
    - Add new information with citation: `(source: <name>)`
    - Flag contradictions: `⚠️ contradicts [[other-page]]: <what>`
    - Add new cross-references
+   - Follow **Updating a page** below.
 
 5. **Update index.md** — add the new page to the catalog.
 
@@ -41,6 +42,17 @@ Process a new source and integrate its knowledge into the project wiki.
    ## [YYYY-MM-DD] ingest | <source title>
    Summary: <one line>. Updated pages: <list>. Contradictions: <any>.
    ```
+
+## Updating a page
+
+- **Update, don't duplicate.** A page or line already covering the same decision, module or entity is edited in place; the source becomes one more citation. Create a page only for what nothing covers.
+- **One facet per line.** Match on the specific entity or claim, not the broad topic. Names a letter apart (`ledger-sync` / `ledger-sink`) are different things.
+- **Latest wins, by date.** Sources arrive in any order, and an old one ingested today is still old. What is current is decided by when it was true (the source's date, commit date, `Updated:`), never by ingest order. An older source adds history ("was X until 2026-03"); it never overwrites a newer value. Undated and conflicting → flag the contradiction.
+- **Cascade.** A fact that makes other lines wrong updates every page that states the old value.
+- **Keep history, delete rarely.** A superseded claim becomes "now Y; was X until <date>". Delete only exact repeats.
+- **No arithmetic.** Never derive a count or total the source doesn't state.
+- **Minimal edit.** Rewrite only the lines that change; leave the rest of the page byte-for-byte as it was.
+- **Corrections.** A source that proves a page wrong (verified, not just newer wording): fix the page and log `## [YYYY-MM-DD] correction | <topic>` with `Claimed: <...>. Actually: <...>. Evidence: <...>.` in `wiki/log.md`.
 
 ## Principles
 

@@ -19,7 +19,7 @@ const {
   isShellSafe,
   defaultMode,
 } = require('../hooks/tails-config');
-const { setMode, readMode, clearMode } = require('../hooks/tails-runtime');
+const { setMode, readMode, clearMode, stripBom } = require('../hooks/tails-runtime');
 
 // 1. Config normalization
 assert.strictEqual(normalizeMode('lite'), 'lite');
@@ -52,5 +52,10 @@ clearMode();
 assert.strictEqual(readMode(), null);
 fs.writeFileSync(path.join(tmp, '.tails-active'), 'garbage\n');
 assert.strictEqual(readMode(), null, 'Invalid state is ignored');
+
+// 5. Hook input through PowerShell on Windows: a BOM, raw or decoded as Windows-1252
+assert.strictEqual(stripBom('﻿{"a":1}'), '{"a":1}');
+assert.strictEqual(stripBom('ï»¿{"a":1}'), '{"a":1}');
+assert.strictEqual(stripBom('{"prompt":"﻿ kept"}'), '{"prompt":"﻿ kept"}', 'Only a leading BOM is removed');
 
 console.log('✓ tests/runtime.test.js passed');

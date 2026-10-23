@@ -3,12 +3,13 @@
 
 const { defaultMode, normalizeMode, isDeactivationCommand } = require('./tails-config');
 const { getTailsInstructions } = require('./tails-instructions');
-const { readMode, setMode, writeHookOutput } = require('./tails-runtime');
+const { readMode, setMode, stripBom, writeHookOutput } = require('./tails-runtime');
 
 let input = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (chunk) => { input += chunk; });
 process.stdin.on('end', () => {
+  input = stripBom(input);
   let userPrompt = '';
   let sessionId;
   try {
@@ -31,8 +32,13 @@ process.stdin.on('end', () => {
   if (!match) {
     // Session memory: remember the request and any correction the user makes. Only hosts that
     // send a session id can restore memory later, so others record nothing.
-    if (sessionId && (readMode() || defaultMode()) !== 'off') {
+    const mode = readMode() || defaultMode();
+    if (sessionId && mode !== 'off') {
       try { require('./tails-session').recordPrompt(sessionId, userPrompt); } catch (_) {}
+      // Wiki sections that bear on the first real request of the session
+      let recall = '';
+      try { recall = require('./tails-recall').recallForPrompt(sessionId, userPrompt); } catch (_) {}
+      if (recall) writeHookOutput('UserPromptSubmit', mode, recall);
     }
     return;
   }

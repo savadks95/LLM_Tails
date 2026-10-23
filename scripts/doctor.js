@@ -58,7 +58,7 @@ check('INFO', 'state directory', runtime.stateDir);
 const mode = runtime.readMode() || defaultMode();
 check(mode === 'off' ? 'WARN' : 'PASS', 'active mode', mode === 'off' ? 'off: hooks inject nothing' : mode);
 check('INFO', 'config file', fs.existsSync(getConfigPath()) ? getConfigPath() : `none (defaults; optional: ${getConfigPath()})`);
-const overrides = ['LLM_TAILS_DEFAULT_MODE', 'TAILS_MAP', 'TAILS_MAP_CHARS', 'TAILS_MEMORY', 'TAILS_MEMORY_CHARS', 'TAILS_HANDOFF', 'TAILS_HANDOFF_CHARS', 'TAILS_READ_MAX_KB']
+const overrides = ['LLM_TAILS_DEFAULT_MODE', 'TAILS_MAP', 'TAILS_MAP_CHARS', 'TAILS_MEMORY', 'TAILS_MEMORY_CHARS', 'TAILS_HANDOFF', 'TAILS_HANDOFF_CHARS', 'TAILS_RECALL', 'TAILS_RECALL_CHARS', 'TAILS_READ_MAX_KB']
   .filter((k) => process.env[k] !== undefined).map((k) => `${k}=${process.env[k]}`);
 check('INFO', 'env overrides', overrides.join(', ') || 'none');
 

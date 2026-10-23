@@ -79,6 +79,6 @@ If this project has a `wiki/` directory, update it when your changes affect the 
 - Update relevant entity/concept pages.
 - Update `wiki/index.md` if you add new pages.
 - Append to `wiki/log.md` with what you changed and why. The log is append-only: never edit or delete past entries; correct with a new one.
-- Flag contradictions between wiki content and current code.
+- Flag contradictions between wiki content and current code. Verified it is wrong → fix the page and log `## [YYYY-MM-DD] correction | <topic>` with `Claimed: … Actually: … Evidence: <file:line>`.
 
 (Yes, this file applies to agents working on the LLM_Tails repo itself.)

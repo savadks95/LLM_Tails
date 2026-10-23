@@ -16,7 +16,7 @@ const budget = i >= 0 ? Number(args[i + 1]) || 6000 : 6000;
 const id = session.latestSessionId();
 
 if (!id) {
-  console.log('No session memory recorded for this project (memory is recorded by Claude Code hooks).');
+  console.log('No session memory recorded for this project (memory is recorded by Claude Code and Codex hooks).');
 } else if (args.includes('--json')) {
   console.log(JSON.stringify(session.readEvents(id), null, 2));
 } else {

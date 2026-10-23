@@ -91,11 +91,13 @@ Optional env vars:
 |----------|---------|--------|
 | `TAILS_MAP=0` | on | Disable the codebase map at session start |
 | `TAILS_MAP_CHARS` | `2000` | Codebase map character budget |
-| `TAILS_MEMORY=0` | on | Disable session memory (Claude Code) |
+| `TAILS_MEMORY=0` | on | Disable session memory (Claude Code, Codex) |
 | `TAILS_MEMORY_CHARS` | `2000` | Restored session memory budget |
 | `TAILS_MEMORY=1` | off | Restore LLM_Tails memory after compaction even when context-mode is detected (it restores its own) |
 | `TAILS_HANDOFF=0` | on | Don't inject `wiki/handoff.md` at session start |
 | `TAILS_HANDOFF_CHARS` | `1500` | Handoff character budget at session start |
+| `TAILS_RECALL=0` | on | Don't inject matching `wiki/` sections on the first real prompt of a session |
+| `TAILS_RECALL_CHARS` | `1200` | Wiki recall character budget |
 | `ANTHROPIC_API_KEY` | none | Only for `npm run bench:live` (live-model benchmark via promptfoo) |
 | `TAILS_READ_MAX_KB` | `64` | Whole-file read size that triggers the opt-in large-read guard |
 

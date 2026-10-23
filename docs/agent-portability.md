@@ -9,7 +9,7 @@ various AI coding agents.
 | Host | Files | Capabilities |
 |------|-------|-------------|
 | Claude Code | `.claude-plugin/plugin.json`, `hooks/claude-hooks.json`, `commands/`, `skills/` | Full plugin: lifecycle hooks, automated codebase map on SessionStart, `/tails` commands, mode persistence, subagent injection, session memory across compaction (PostToolUse / PostToolUseFailure); optional large-read guard (opt-in, see INSTALL.md) |
-| Codex | `.codex-plugin/plugin.json`, `hooks/claude-codex-hooks.json`, `commands/`, `skills/` | Plugin: SessionStart, SubagentStart, UserPromptSubmit (same as Claude Code minus session memory) |
+| Codex | `.codex-plugin/plugin.json`, `hooks/claude-codex-hooks.json`, `commands/`, `skills/` | Plugin: SessionStart, SubagentStart, UserPromptSubmit, PostToolUse on `apply_patch` and `update_plan` (session memory records prompts, files and tasks; no tool errors, since Codex's shell `tool_response` carries no exit code) |
 | Antigravity (IDE) | `.agents/rules/llm-tails.md`, `.agents/plugins/marketplace.json`, `AGENTS.md` | Native workspace rules and IDE plugin discovery |
 | Antigravity CLI | `gemini-extension.json`, `AGENTS.md`, `commands/`, `skills/` | Extension: always-on context + slash commands + skills |
 | Cursor | `hooks/cursor-hooks.json`, `scripts/cursor-hooks.js`, `docs/cursor-hooks.md`, `.cursor/rules/llm-tails.mdc` | Full lifecycle hooks: sessionStart ruleset + codebase map, beforeSubmitPrompt level tracking; or instruction-only rule fallback |
@@ -47,7 +47,8 @@ instructions, add its file to `scripts/sync-rules.js` (rendered from `AGENTS.md`
 - `skills/tails-doctor/SKILL.md`: install diagnostics (`scripts/doctor.js`)
 - `skills/tails-help/SKILL.md`: quick reference
 - `hooks/tails-map.js`: automated codebase map (zero-dependency regex map of functions, classes, and exports at session start)
-- `hooks/tails-session.js`: session memory restored after compaction/resume (Claude Code hooks)
+- `hooks/tails-session.js`: session memory restored after compaction/resume (Claude Code and Codex hooks)
+- `hooks/tails-recall.js`: on the first real prompt of a session, injects the `wiki/` sections that match it (BM25, at most 3, 1,200 chars)
 - `hooks/tails-handoff.js`: injects an open `wiki/handoff.md` (written by `/tails-end`) at a fresh session start; hook-less agents read it via their rules file
 - `hooks/tails-companions.js`: detects context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, qmd and caveman in Claude Code config so LLM_Tails cooperates instead of duplicating them
 - `hooks/tails-guard.js`: opt-in guard patterns (`tails-guard:` lines in AGENTS.md / CLAUDE.md) that ask before a matching command or edit (Claude Code PreToolUse)

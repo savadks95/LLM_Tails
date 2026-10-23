@@ -41,7 +41,13 @@ try {
     fs.writeFileSync(target, JSON.stringify(initial, null, 2));
 
     install('project');
+    const backup = target + '.llm-tails-backup';
+    assert.strictEqual(fs.readFileSync(backup, 'utf8'), JSON.stringify(initial, null, 2), "User's file kept once");
+    const afterFirst = fs.readFileSync(target, 'utf8');
     install('project'); // idempotent: no duplicates
+    assert.strictEqual(fs.readFileSync(target, 'utf8'), afterFirst, 'Re-install changes nothing');
+    assert.strictEqual(fs.readFileSync(backup, 'utf8'), JSON.stringify(initial, null, 2), 'Backup never overwritten');
+    assert.ok(!fs.existsSync(target + '.llm-tails-tmp'), 'No temp file left behind');
     let cfg = JSON.parse(fs.readFileSync(target, 'utf8'));
     assert.strictEqual(cfg.hooks.sessionStart.length, 2, 'User hook kept + one LLM_Tails hook');
     assert.strictEqual(cfg.hooks.beforeSubmitPrompt.filter(isTailsHook).length, 1);
@@ -57,9 +63,16 @@ try {
     uninstall('project');
     assert.ok(!fs.existsSync(target), 'File created by install is removed by uninstall');
 
-    // Malformed file is refused, not overwritten
+    // Windows line endings survive an install
+    fs.writeFileSync(target, JSON.stringify(initial, null, 2).replace(/\n/g, '\r\n') + '\r\n');
+    install('project');
+    const crlf = fs.readFileSync(target, 'utf8');
+    assert.ok(crlf.includes('\r\n') && !/[^\r]\n/.test(crlf), 'CRLF kept');
+    uninstall('project');
+
+    // Malformed or commented (JSONC) file is refused, not overwritten
     fs.writeFileSync(target, '{ not json');
-    assert.throws(() => install('project'));
+    assert.throws(() => install('project'), /not plain JSON/);
     assert.strictEqual(fs.readFileSync(target, 'utf8'), '{ not json');
   } finally {
     process.chdir(cwd);

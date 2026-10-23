@@ -76,11 +76,18 @@ function cursorRuleNotice(rule) {
     'delete that rule so hooks.json can manage the level.';
 }
 
+// Hosts on Windows can pipe the event through PowerShell, which prepends a UTF-8 BOM, either raw
+// or decoded as Windows-1252 ("ï»¿"). JSON.parse rejects both, and every hook would silently do
+// nothing. Adapted from Hindsight (MIT), coding-agents core/diag.ts.
+function stripBom(text) {
+  return String(text).replace(/^(?:﻿|ï»¿)+/, '');
+}
+
 // Hook event JSON from stdin. Empty object when run by hand from a terminal or on bad input.
 function readHookInput() {
   if (process.stdin.isTTY) return {};
   try {
-    return JSON.parse(fs.readFileSync(0, 'utf8') || '{}') || {};
+    return JSON.parse(stripBom(fs.readFileSync(0, 'utf8')) || '{}') || {};
   } catch (e) {
     return {};
   }
@@ -157,6 +164,7 @@ module.exports = {
   readMode,
   setMode,
   stateDir,
+  stripBom,
   writeHookOutput,
   writeOut,
 };

@@ -48,7 +48,7 @@ If the project has a `wiki/` directory:
 - Cite wiki pages when they inform your answer: `(see wiki/auth-flow.md)`.
 - After architectural changes, update affected wiki pages.
 - Append to `wiki/log.md`: `## [YYYY-MM-DD] <type> | <title>`. The log is history: append-only, never edit or delete past entries; correct a wrong one with a new entry. Wiki pages are living state: update them in place.
-- Flag when wiki content contradicts current code.
+- Flag when wiki content contradicts current code. Verified it is wrong → fix the page and log `## [YYYY-MM-DD] correction | <topic>` with `Claimed: … Actually: … Evidence: <file:line>`.
 
 If no wiki exists and the user asks for one, use `/tails-wiki-init` to scaffold it.
 

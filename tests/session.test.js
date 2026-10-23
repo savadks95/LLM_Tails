@@ -19,10 +19,11 @@ const session = require('../hooks/tails-session');
 const { guard } = require('../hooks/tails-read-guard');
 const { CONTEXT_LIMIT } = require('../hooks/tails-activate');
 
-// Run a hook the way the plugin does: `node -e "require(<hook>)"` with JSON on stdin
+// Run a hook the way the plugin does: `node -e "require(<hook>)"` with JSON on stdin (a string is sent as is)
 function runHook(file, input, env = {}) {
   const res = spawnSync(process.execPath, ['-e', `require(${JSON.stringify(path.join(HOOKS, file))})`], {
-    input: JSON.stringify(input), encoding: 'utf8', cwd: project, env: { ...process.env, ...env },
+    input: typeof input === 'string' ? input : JSON.stringify(input), encoding: 'utf8', cwd: project,
+    env: { ...process.env, ...env },
   });
   assert.strictEqual(res.status, 0, res.stderr);
   return res.stdout;
@@ -59,7 +60,10 @@ try {
   assert.ok(summary.includes('[in_progress] Add test') && !summary.includes('Write limiter'), 'Only open tasks');
   assert.ok(summary.includes('npm test failed') && !summary.includes('abc123secret'), 'Errors kept, secrets masked');
   assert.ok(!summary.includes('/tails ultra'), 'Mode commands are not memory');
-  assert.ok(session.buildSessionSummary(id, undefined, 400).length <= 400, 'Budget respected');
+  const small = session.buildSessionSummary(id, undefined, 400);
+  assert.ok(small.length <= 400, 'Budget respected');
+  assert.ok(small.includes('Last request:'), 'Header and footer leave room for memory in a small budget');
+  assert.ok(small.includes('user decisions still stand'), 'User corrections are framed as still in force');
 
   // 3. After compaction, SessionStart restores memory and stays under the host's context limit
   const restored = JSON.parse(runHook('tails-activate.js', { session_id: id, source: 'compact' }));
@@ -107,6 +111,53 @@ try {
   const sub = JSON.parse(runHook('tails-subagent.js', {})).hookSpecificOutput.additionalContext;
   assert.ok(sub.includes('LLM_TAILS MODE ACTIVE') && sub.includes('Never hallucinate'));
   assert.ok(sub.length < fresh.hookSpecificOutput.additionalContext.length * 0.7, 'Subagent rules are compact');
+
+  // 8. Hook input piped through PowerShell on Windows starts with a BOM, raw or as "ï»¿"
+  const bomId = 'sess-bom';
+  runHook('tails-mode-tracker.js', '﻿' + JSON.stringify({ session_id: bomId, prompt: 'Use pnpm, not npm' }));
+  runHook('tails-post-tool.js', 'ï»¿' + JSON.stringify({ session_id: bomId,
+    hook_event_name: 'PostToolUse', tool_name: 'Write', tool_input: { file_path: path.join(project, 'pnpm-workspace.yaml') } }));
+  const bomEvents = session.readEvents(bomId);
+  assert.ok(bomEvents.some((e) => e.type === 'prompt' && e.text === 'Use pnpm, not npm'), 'BOM prompt recorded');
+  assert.ok(bomEvents.some((e) => e.type === 'file' && e.path === 'pnpm-workspace.yaml'), 'BOM tool event recorded');
+  runHook('tails-mode-tracker.js', 'ï»¿' + JSON.stringify({ session_id: bomId, prompt: '/tails lite' }));
+  assert.strictEqual(require('../hooks/tails-runtime').readMode(), 'lite', 'BOM /tails switch applied');
+
+  // 9. Codex: PostToolUse sends apply_patch (paths in the patch, relative to the session cwd) and update_plan
+  const codexHooks = require('../hooks/claude-codex-hooks.json').hooks.PostToolUse;
+  assert.ok(codexHooks.some((g) => /apply_patch/.test(g.matcher) && /update_plan/.test(g.matcher)), 'Codex wires PostToolUse');
+  const cx = 'sess-codex';
+  runHook('tails-post-tool.js', { session_id: cx, hook_event_name: 'PostToolUse', tool_name: 'apply_patch', cwd: project,
+    tool_input: { command: '*** Begin Patch\n*** Update File: src/a.js\n@@\n-x\n+y\n*** Add File: src/b.js\n+z\n' +
+      '*** Delete File: old.js\n*** Update File: src/c.js\n*** Move to: src/d.js\n@@\n-q\n+r\n*** End Patch' } });
+  runHook('tails-post-tool.js', { session_id: cx, hook_event_name: 'PostToolUse', tool_name: 'apply_patch',
+    cwd: path.join(project, 'pkg'), tool_input: { command: '*** Begin Patch\n*** Update File: x.js\n*** End Patch' } });
+  runHook('tails-post-tool.js', { session_id: cx, hook_event_name: 'PostToolUse', tool_name: 'update_plan',
+    tool_input: { plan: [{ step: 'Parse patch', status: 'completed' }, { step: 'Write test', status: 'in_progress' }] } });
+  const cxFiles = session.readEvents(cx).filter((e) => e.type === 'file').map((e) => e.path);
+  assert.deepStrictEqual(cxFiles, ['src/a.js', 'src/b.js', 'old.js', 'src/c.js', 'src/d.js', 'pkg/x.js']);
+  const cxSummary = session.buildSessionSummary(cx);
+  assert.ok(cxSummary.includes('[in_progress] Write test') && !cxSummary.includes('Parse patch'), 'Codex plan = open tasks');
+
+  // 10. Wiki recall: once per session, on the first prompt that names a topic
+  fs.mkdirSync(path.join(project, 'wiki', 'entities'), { recursive: true });
+  fs.writeFileSync(path.join(project, 'wiki', 'index.md'), '# Index\n- [[entities/auth]] rate limiting, login\n');
+  fs.writeFileSync(path.join(project, 'wiki', 'entities', 'auth.md'),
+    '# Auth\nSessions.\n## Rate limiting\nLogin attempts are limited in memory per IP (see src/limiter.js:L10).\n');
+  fs.writeFileSync(path.join(project, 'wiki', 'entities', 'billing.md'), '# Billing\nInvoices go out monthly via Stripe.\n');
+  const rc = 'sess-recall';
+  assert.strictEqual(runHook('tails-mode-tracker.js', { session_id: rc, prompt: 'hi, please help' }), '', 'No topic, no recall');
+  assert.strictEqual(runHook('tails-mode-tracker.js', { session_id: rc, prompt: '/tails-wiki-query login rate limiting' }), '',
+    'Slash commands are not searched');
+  const recalled = JSON.parse(runHook('tails-mode-tracker.js', { session_id: rc,
+    prompt: 'Why is login rate limiting kept in memory?' })).hookSpecificOutput.additionalContext;
+  assert.ok(recalled.includes('LLM_TAILS WIKI RECALL') && recalled.includes('wiki/entities/auth.md > Rate limiting'));
+  assert.ok(!recalled.includes('billing') && !recalled.includes('wiki/index.md'), 'Only matching sections, never the index');
+  assert.ok(recalled.length <= 1200, 'Recall budget respected');
+  assert.strictEqual(runHook('tails-mode-tracker.js', { session_id: rc, prompt: 'And login rate limiting for the API?' }), '',
+    'Recall runs once per session');
+  assert.strictEqual(runHook('tails-mode-tracker.js', { session_id: 'sess-recall-off', prompt: 'login rate limiting' },
+    { TAILS_RECALL: '0' }), '', 'TAILS_RECALL=0 disables it');
 
   console.log('✓ tests/session.test.js passed');
 } finally {
