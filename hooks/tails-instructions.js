@@ -71,7 +71,7 @@ const LEVEL_NOTES = {
   ultra: 'Maximum strictness: every claim needs a [verified] cite or an explicit [uncertain]; challenge requirements before building.',
 };
 
-// Subagents get the compact ruleset (AGENTS.md): the same pillars at about half the context of the full skill.
+// Subagents get the compact ruleset (AGENTS.md): the same pillars at about a third of the context of the full skill.
 function getSubagentInstructions(mode) {
   const effectiveMode = normalizeMode(mode) || DEFAULT_MODE;
   if (effectiveMode === 'off') return '';
