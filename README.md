@@ -218,7 +218,7 @@ AGENTS.md             # the schema: tells the LLM how to maintain the wiki
 
 ## Benchmarks
 
-> **Read this first:** the benchmark scores **hand-written** baseline and LLM_Tails sample outputs on four tasks. It shows the behaviour the rules aim for and tests the evaluator itself; it does **not** measure live agent runs. For real numbers on your own project's overhead, use `/tails-stats` (`npm run stats`). Live-agent results from your codebase are very welcome in [issues](https://github.com/savadks95/LLM_Tails/issues).
+> **Read this first:** the benchmark scores **hand-written** baseline and LLM_Tails sample outputs on four tasks. It shows the behaviour the rules aim for and tests the evaluator itself; it does **not** measure live agent runs (for that, see the [live agent A/B test](#live-agent-ab-test-claude-code)). For real numbers on your own project's overhead, use `/tails-stats` (`npm run stats`). Live-agent results from your codebase are very welcome in [issues](https://github.com/savadks95/LLM_Tails/issues).
 
 The zero-dependency suite ([benchmarks/](benchmarks/)) measures code size, runs each LLM_Tails sample against real behaviour checks in a VM sandbox, and scores four-pillar compliance across four tasks (debounce, rate limiter, CSV aggregation, retrying API client):
 
@@ -245,7 +245,44 @@ To measure a real model instead of samples, [benchmarks/live/](benchmarks/live/)
 ```bash
 npm run bench:live
 ```
-No live results are published here yet: please share yours in an [issue](https://github.com/savadks95/LLM_Tails/issues).
+No promptfoo results are published here yet: please share yours in an [issue](https://github.com/savadks95/LLM_Tails/issues). For a full agent run, see the A/B test below.
+
+### Live agent A/B test (Claude Code)
+
+A real end-to-end build, not samples: the same model, given the same one-line prompt, building a whole app twice. Once with LLM_Tails, once without. Run on 2026-10-26 with Claude Code (desktop app), Claude Opus 5.5, LLM_Tails v3.1.0 at the default `full` level.
+
+**Setup**
+
+- Two sibling folders, `with_LLM_Tails/` and `without_LLM_Tails/`. Each run gets its own sub-folder (`tetris_galaxy_v2`, `_v3`, …) holding a `.claude/settings.json`: the `with` copy registers the LLM_Tails hooks, the `without` copy disables the plugin.
+- Each run is a fresh session started in its own sub-folder. Both sides get the identical prompt, model and effort level.
+- Prompt: `create a game in python which is a mix of Tetris and Galaxy` (v2–v4), and the same plus `include a README.` (v5).
+- Tokens come from Claude Code's own session transcripts (`~/.claude/projects/<folder>/*.jsonl`), counting each API response once. "Total input" = uncached + cache write + cache read.
+- Each run was checked to confirm the hooks actually fired (`LLM_TAILS MODE ACTIVE` in the `with` transcript and absent from the `without` one). We ran every game's own test suite ourselves rather than trusting the agent's report.
+
+**Results**
+
+| Run | Total input (with / without) | Output tokens | API calls | Game code (lines) | Own tests |
+|-----|------------------------------|---------------|-----------|-------------------|-----------|
+| v2 | 1.14M / 1.49M | 25.7k / 38.4k | 12 / 15 | 378 / 806 | pass / pass |
+| v3 | 0.97M / 2.02M | 29.2k / 50.6k | 10 / 18 | 365 / 830 | pass / pass |
+| v4 | 0.94M / 2.07M | 24.0k / 49.8k | 10 / 19 | 379 / 876 | pass / pass |
+| v5 (README requested) | 1.01M / 5.05M | 20.8k / 74.3k | 11 / 38 | 347 / 1,041 | pass / pass |
+| **Median** | **0.99M / 2.05M (−52%)** | **24.8k / 50.2k (−51%)** | **10.5 / 18.5 (−43%)** | **372 / 853 (−56%)** | 4/4 vs 4/4 |
+
+**Conclusions**
+
+- **Tokens:** LLM_Tails roughly halved input and output tokens. The ranges never overlapped: the most expensive `with` run (1.14M) used less than the cheapest `without` run (1.49M). For scale, a calibration run in which *both* sides were accidentally without LLM_Tails differed by only ~8% input and ~11% output.
+- **Code size:** 53–67% less game code per run for the same request.
+- **Correctness:** no difference found. Every game on both sides compiled and passed its own tests.
+- **The trade-off:** part of the saving is work LLM_Tails left out. Unasked, it wrote no README and about half as many tests. When asked (v5), it wrote the README at no extra token cost (1.01M vs its 1.02M average). The `without` agent also does more polishing on its own: in v5 it viewed 18 screenshots and fixed text overflow and frame time. That is why v5 is the outlier on the `without` side.
+
+**Limitations**
+
+- Four valid pairs, one prompt, one model. Treat the medians as indicative, not definitive.
+- Each build "passes its own tests": nobody played the games, and no independent test suite compared their quality. Each pair also interpreted "Tetris + Galaxy" differently, so the games are not feature-equivalent.
+- Some sessions read hand-over notes left by earlier runs in a folder shared by sessions launched from the same parent session, so design choices were not fully independent (both sides were affected).
+- LLM_Tails' `[verified]` / `[likely]` / `[uncertain]` tags never appeared in the agent's replies during these builds.
+- The rule says to name what it skipped ("skip it, say so"), but none of the `with` sessions mentioned leaving out a README.
 
 ## Compatibility
 
