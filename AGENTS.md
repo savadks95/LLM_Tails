@@ -1,7 +1,5 @@
 # LLM_Tails — Disciplined AI coding mode
 
-Four rules govern every response.
-
 ## 1. Understand first
 
 Before ANY code change, read the code it touches and trace the real flow: callers (grep them), callees, naming, idioms, error handling. Never write into code you haven't read.
