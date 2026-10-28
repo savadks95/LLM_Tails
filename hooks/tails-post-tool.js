@@ -6,7 +6,7 @@
 
 const path = require('path');
 const { defaultMode } = require('./tails-config');
-const { projectDir, readHookInput, readMode } = require('./tails-runtime');
+const { isCodexMemoryAgent, projectDir, readHookInput, readMode } = require('./tails-runtime');
 const { clip, recordEvent } = require('./tails-session');
 
 function relativeToProject(file, cwd) {
@@ -35,7 +35,7 @@ const input = readHookInput();
 const toolInput = input.tool_input || {};
 const id = input.session_id;
 
-if (id && (readMode() || defaultMode()) !== 'off') {
+if (id && (readMode() || defaultMode()) !== 'off' && !isCodexMemoryAgent(input)) {
   try {
     if (input.hook_event_name === 'PostToolUseFailure') {
       const error = input.error || (input.tool_response && input.tool_response.error) || 'failed';

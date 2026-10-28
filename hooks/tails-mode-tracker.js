@@ -3,7 +3,7 @@
 
 const { defaultMode, normalizeMode, isDeactivationCommand } = require('./tails-config');
 const { getTailsInstructions } = require('./tails-instructions');
-const { readMode, setMode, stripBom, writeHookOutput } = require('./tails-runtime');
+const { isCodexMemoryAgent, readMode, setMode, stripBom, writeHookOutput } = require('./tails-runtime');
 
 let input = '';
 process.stdin.setEncoding('utf8');
@@ -12,13 +12,16 @@ process.stdin.on('end', () => {
   input = stripBom(input);
   let userPrompt = '';
   let sessionId;
+  let cwd;
   try {
     const parsed = JSON.parse(input);
     userPrompt = (parsed.prompt || parsed.userPrompt || parsed.message || '').trim();
     sessionId = parsed.session_id;
+    cwd = parsed.cwd;
   } catch (_) {
     userPrompt = input.trim();
   }
+  if (isCodexMemoryAgent({ cwd, prompt: userPrompt })) return;
 
   // Standalone deactivation: "stop tails" / "normal mode"
   if (isDeactivationCommand(userPrompt)) {

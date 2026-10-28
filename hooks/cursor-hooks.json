@@ -4,13 +4,13 @@
     "sessionStart": [
       {
         "command": "node \"TAILS_DIR/hooks/tails-activate.js\"",
-        "timeout": 5
+        "timeout": 15
       }
     ],
     "beforeSubmitPrompt": [
       {
         "command": "node \"TAILS_DIR/hooks/tails-mode-tracker.js\"",
-        "timeout": 5
+        "timeout": 15
       }
     ]
   }

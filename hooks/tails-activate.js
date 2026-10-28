@@ -12,6 +12,7 @@ const {
   cursorRulePath,
   isCodeBuddy,
   isCodex,
+  isCodexMemoryAgent,
   isCopilot,
   isCursor,
   isQoder,
@@ -125,7 +126,8 @@ function activate(requestedMode, input = {}) {
 }
 
 if (require.main === module || process.argv[1] === undefined) {
-  activate(process.argv[2], readHookInput());
+  const input = readHookInput();
+  if (!isCodexMemoryAgent(input)) activate(process.argv[2], input);
 }
 
 module.exports = { CONTEXT_LIMIT, activate };

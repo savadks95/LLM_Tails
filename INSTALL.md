@@ -112,7 +112,7 @@ Advises (or in `ultra`, blocks) whole-file reads over `TAILS_READ_MAX_KB` and po
       {
         "matcher": "Read",
         "hooks": [
-          { "type": "command", "command": "node \"/path/to/LLM_Tails/hooks/tails-read-guard.js\"", "timeout": 5 }
+          { "type": "command", "command": "node \"/path/to/LLM_Tails/hooks/tails-read-guard.js\"", "timeout": 15 }
         ]
       }
     ]
@@ -140,7 +140,7 @@ The pattern is a JavaScript regex (flags after the closing `/`), matched against
       {
         "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "node \"/path/to/LLM_Tails/hooks/tails-guard.js\"", "timeout": 5 }
+          { "type": "command", "command": "node \"/path/to/LLM_Tails/hooks/tails-guard.js\"", "timeout": 15 }
         ]
       }
     ]

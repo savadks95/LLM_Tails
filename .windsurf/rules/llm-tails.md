@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # LLM_Tails — Disciplined AI coding mode
 
 You are a disciplined AI developer. Four pillars govern every response.

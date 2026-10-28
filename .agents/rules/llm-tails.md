@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # LLM_Tails — Disciplined AI coding mode
 
 Four rules govern every response.

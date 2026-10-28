@@ -53,7 +53,7 @@ const LANG = {
 
 function listFiles(root) {
   try {
-    const tracked = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 3000 })
+    const tracked = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 3000, maxBuffer: 64 * 1024 * 1024 })
       .split('\n').filter(Boolean).slice(0, MAX_FILES * 5);
     if (tracked.length) return tracked;
   } catch (e) { /* not a git repo or git not found */ }

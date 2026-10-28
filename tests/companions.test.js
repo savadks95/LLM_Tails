@@ -87,6 +87,19 @@ try {
   fs.unlinkSync(path.join(project, '.mcp.json'));
   write(path.join(claude, 'settings.json'), {});
 
+  // 3c. context7: the admin server has no docs tools; `ctx7 setup --cli` installs only a rule file
+  write(path.join(project, '.mcp.json'), { mcpServers: { 'context7-admin': { command: 'npx' } } });
+  assert.deepStrictEqual(detectCompanions(project), []);
+  fs.unlinkSync(path.join(project, '.mcp.json'));
+  fs.mkdirSync(path.join(project, '.claude', 'rules'), { recursive: true });
+  write(path.join(project, '.claude', 'rules', 'context7.md'), '# context7');
+  assert.deepStrictEqual(detectCompanions(project), ['context7']);
+  fs.rmSync(path.join(project, '.claude'), { recursive: true });
+
+  // 3d. Codex's background memory agent gets no rules, map or memory
+  const memories = path.join(tmp, '.codex', 'memories');
+  assert.strictEqual(runHook('tails-activate.js', { session_id: 'sess-m', source: 'startup', cwd: memories }), '');
+
   // 4. Handoff: injected at a fresh start, closed by "Status: done", skipped after compaction
   const handoffFile = path.join(project, 'wiki', 'handoff.md');
   const today = new Date().toISOString().slice(0, 10);
