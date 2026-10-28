@@ -169,12 +169,12 @@ Context is a budget. LLM_Tails spends it on understanding, not on raw data:
 
   | Companion | What LLM_Tails does when it is installed |
   |---|---|
-  | [context-mode](https://github.com/mksglu/context-mode) | Points the agent at its `ctx_execute` / `ctx_batch_execute` / `ctx_search` sandbox tools for large output; skips its own memory restore after compaction, because context-mode restores its own (`TAILS_MEMORY=1` keeps both) |
+  | [context-mode](https://github.com/mksglu/context-mode) | Points the agent at its `ctx_execute` / `ctx_batch` (v1: `ctx_batch_execute`) / `ctx_search` sandbox tools for large output; skips its own memory restore after compaction, because context-mode restores its own (`TAILS_MEMORY=1` keeps both) |
   | [ai-memory](https://github.com/akitaonrails/ai-memory) | Search past sessions and other agents' handoffs there before re-investigating; `wiki/` stays the reviewed record |
   | [claude-mem](https://github.com/thedotmack/claude-mem) | Search past sessions (`search` → `timeline` → `get_observations`) before re-investigating |
   | [context7](https://github.com/upstash/context7) | Verify library APIs against current docs (`resolve-library-id` → `query-docs`, or `ctx7 docs`) before tagging them `[verified]` (Pillar 3) |
   | [serena](https://github.com/oraios/serena) | Trace callers and definitions with `find_symbol` / `find_referencing_symbols` instead of grep (Pillar 1) |
-  | [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp) | Use `search_graph` / `trace_call_path` for structure; the LLM_Tails map shrinks to 600 chars |
+  | [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp) | Use `search_graph` → `trace_path` for structure; the LLM_Tails map shrinks to 600 chars |
   | [qmd](https://github.com/tobi/qmd) | Answer wiki questions with `qmd query "<topic>"` (hybrid search) |
   | [caveman](https://github.com/JuliusBrussee/caveman) | Stay terse, but never cut `[verified]`/`[uncertain]` markers, citations or "not verified" |
 

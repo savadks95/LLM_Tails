@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/tails-activate.js'))\"",
-            "timeout": 5,
+            "timeout": 15,
             "statusMessage": "Loading LLM_Tails mode..."
           }
         ]
@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/tails-subagent.js'))\"",
-            "timeout": 5,
+            "timeout": 15,
             "statusMessage": "Loading LLM_Tails mode..."
           }
         ]
@@ -31,7 +31,7 @@
           {
             "type": "command",
             "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/tails-mode-tracker.js'))\"",
-            "timeout": 5,
+            "timeout": 15,
             "statusMessage": "Tracking LLM_Tails mode..."
           }
         ]
@@ -44,7 +44,7 @@
           {
             "type": "command",
             "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/tails-post-tool.js'))\"",
-            "timeout": 5
+            "timeout": 15
           }
         ]
       }
@@ -55,7 +55,7 @@
           {
             "type": "command",
             "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/tails-post-tool.js'))\"",
-            "timeout": 5
+            "timeout": 15
           }
         ]
       }
@@ -66,7 +66,7 @@
           {
             "type": "command",
             "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/tails-test-check.js'))\"",
-            "timeout": 5
+            "timeout": 15
           }
         ]
       }

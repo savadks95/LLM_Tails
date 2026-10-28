@@ -17,9 +17,12 @@ function targets() {
   const full = read('AGENTS.md').replace(/\n\(Yes, this file applies[^\n]*\)\s*$/, '').trim() + '\n';
   const compact = read('rules/compact.md').trim() + '\n';
   const title = compact.match(/^# (.+)$/m)[1];
+  // Antigravity drops a rules/ file without a `trigger` (rulesync antigravity-cli-rule.ts);
+  // Windsurf / Devin Desktop reads the same key.
+  const alwaysOn = '---\ntrigger: always_on\n---\n\n';
   return {
-    '.agents/rules/llm-tails.md': full,
-    '.windsurf/rules/llm-tails.md': compact,
+    '.agents/rules/llm-tails.md': alwaysOn + full,
+    '.windsurf/rules/llm-tails.md': alwaysOn + compact,
     '.clinerules/llm-tails.md': compact,
     '.github/copilot-instructions.md': compact,
     '.qoder/rules/llm-tails.md': compact,

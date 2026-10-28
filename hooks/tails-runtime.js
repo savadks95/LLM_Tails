@@ -93,6 +93,17 @@ function readHookInput() {
   }
 }
 
+// Codex consolidates its own memory with a background "memory writing agent" run from
+// $CODEX_HOME/memories, and its hooks fire like a real session's. Recognized by that folder or the
+// agent's prompt header. Idea from ai-memory (MIT), #1674.
+function isCodexMemoryAgent(input = {}) {
+  const norm = (p) => String(p).replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase();
+  const cwd = norm(input.cwd || process.cwd());
+  return /(^|\/)\.codex\/memories$/.test(cwd) ||
+    Boolean(process.env.CODEX_HOME && cwd === norm(path.join(process.env.CODEX_HOME, 'memories'))) ||
+    String(input.prompt || '').trimStart().startsWith('## Memory Writing Agent');
+}
+
 // Synchronous: process.exit() is often called right after this, and on some platforms
 // asynchronous pipe writes would be dropped when the process exits.
 function writeOut(text) {
@@ -155,6 +166,7 @@ module.exports = {
   cursorRulePath,
   isCodeBuddy,
   isCodex,
+  isCodexMemoryAgent,
   isCopilot,
   isCursor,
   isQoder,

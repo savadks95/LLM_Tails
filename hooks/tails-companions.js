@@ -22,7 +22,7 @@ const COMPANIONS = {
   'context-mode': /context-mode/i,
   'ai-memory': /ai-memory/i,
   'claude-mem': /claude-mem/i,
-  context7: /context7|ctx7/i,
+  context7: /context7(?!-admin)|ctx7/i, // context7-admin manages libraries, it has no docs tools
   serena: /serena/i,
   'codebase-memory-mcp': /codebase-memory/i,
   qmd: /(^|[^a-z])qmd([^a-z]|$)/i,
@@ -32,14 +32,14 @@ const NOTES_BUDGET = 1000;
 
 const NOTES = {
   'context-mode': 'context-mode: for large output (logs, test runs, big files, web pages) use its ctx_execute / ' +
-    'ctx_batch_execute / ctx_search tools. It restores session state after compaction, so LLM_Tails does not repeat its own.',
+    'ctx_batch(_execute) / ctx_search tools. It restores session state after compaction, so LLM_Tails does not repeat its own.',
   'ai-memory': 'ai-memory: before re-investigating, search it for past sessions and handoffs from other agents. ' +
     'wiki/ stays the reviewed project record.',
   'claude-mem': 'claude-mem: search past sessions (search → timeline → get_observations) before re-investigating.',
   context7: 'context7: verify library APIs against current docs there (resolve-library-id → query-docs, or ' +
     '`ctx7 docs <libraryId> <query>`) and tag them [verified].',
   serena: 'serena: trace callers and definitions with find_symbol / find_referencing_symbols instead of grep.',
-  'codebase-memory-mcp': 'codebase-memory-mcp: use search_graph / trace_call_path for structure and callers; ' +
+  'codebase-memory-mcp': 'codebase-memory-mcp: use search_graph → trace_path for structure and callers; ' +
     'the LLM_Tails map is trimmed.',
   qmd: 'qmd: answer wiki questions with `qmd query "<topic>"` (index once: `qmd collection add wiki --name wiki`).',
   caveman: 'caveman: talk tersely, but never cut [verified]/[uncertain] markers, citations, or "not verified".',
@@ -91,6 +91,10 @@ function activeNames(dir) {
     if (project) addServers(project[1].mcpServers);
   }
   addServers((readJson(path.join(dir, '.mcp.json')) || {}).mcpServers);
+  // `ctx7 setup --cli` installs a rule file instead of an MCP server or plugin.
+  for (const base of [claude, path.join(dir, '.claude')]) {
+    if (fs.existsSync(path.join(base, 'rules', 'context7.md'))) names.push('ctx7');
+  }
   return names;
 }
 

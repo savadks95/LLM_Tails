@@ -19,7 +19,7 @@ const {
   isShellSafe,
   defaultMode,
 } = require('../hooks/tails-config');
-const { setMode, readMode, clearMode, stripBom } = require('../hooks/tails-runtime');
+const { setMode, readMode, clearMode, isCodexMemoryAgent, stripBom } = require('../hooks/tails-runtime');
 
 // 1. Config normalization
 assert.strictEqual(normalizeMode('lite'), 'lite');
@@ -57,5 +57,11 @@ assert.strictEqual(readMode(), null, 'Invalid state is ignored');
 assert.strictEqual(stripBom('﻿{"a":1}'), '{"a":1}');
 assert.strictEqual(stripBom('ï»¿{"a":1}'), '{"a":1}');
 assert.strictEqual(stripBom('{"prompt":"﻿ kept"}'), '{"prompt":"﻿ kept"}', 'Only a leading BOM is removed');
+
+// 6. Codex's own background memory agent is not a user session
+assert.strictEqual(isCodexMemoryAgent({ cwd: 'C:\\Users\\me\\.codex\\memories' }), true);
+assert.strictEqual(isCodexMemoryAgent({ cwd: '/home/me/.Codex/memories/' }), true);
+assert.strictEqual(isCodexMemoryAgent({ cwd: '/repo', prompt: '## Memory Writing Agent\nmerge notes' }), true);
+assert.strictEqual(isCodexMemoryAgent({ cwd: '/repo/memories', prompt: 'fix the memories page' }), false);
 
 console.log('✓ tests/runtime.test.js passed');

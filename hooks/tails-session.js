@@ -35,7 +35,7 @@ const TOKEN_SHAPES = [
 ];
 
 const SECRET_PATTERNS = [
-  [/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(-----END [A-Z ]*PRIVATE KEY-----|$)/g, '[REDACTED KEY]'],
+  [/-----BEGIN [A-Z ]*PRIVATE KEY( BLOCK)?-----[\s\S]*?(-----END [A-Z ]*PRIVATE KEY( BLOCK)?-----|$)/g, '[REDACTED KEY]'],
   [new RegExp(`\\b(?:${TOKEN_SHAPES.join('|')})`, 'g'), '[REDACTED]'],
   [/\b(Bearer)\s+[A-Za-z0-9._~+/-]{8,}=*/gi, '$1 [REDACTED]'],
   [/(\/\/[^/\s:@]+:)[^@\s/]+@/g, '$1[REDACTED]@'],
