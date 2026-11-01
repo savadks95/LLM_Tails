@@ -34,7 +34,7 @@ instructions, add its file to `scripts/sync-rules.js` (rendered from `AGENTS.md`
 ## Portable Behavior
 
 - `skills/tails/SKILL.md`: the four pillars (core skill)
-- `skills/tails-review/SKILL.md`: four-pillar diff review (4-part structured findings & severity groups)
+- `skills/tails-review/SKILL.md`: four-pillar diff review (4-part structured findings & severity groups); `fresh` delegates it to a subagent where the host has them
 - `skills/tails-audit/SKILL.md`: whole-repo four-pillar audit (architecture, bloat, hallucination, consistency, wiki health)
 - `skills/tails-wiki-init/SKILL.md`: scaffold project wiki with Karpathy 3-layer pattern (`raw/`, `wiki/`, `AGENTS.md`)
 - `skills/tails-wiki-ingest/SKILL.md`: ingest sources into the wiki, preserving immutable raw sources
@@ -42,7 +42,7 @@ instructions, add its file to `scripts/sync-rules.js` (rendered from `AGENTS.md`
 - `skills/tails-wiki-query/SKILL.md`: targeted 1-hop wiki query with compounding knowledge filing (`--save`)
 - `skills/tails-debt/SKILL.md`: harvest `tails:` and `shortcut:` comments into a ledger with `git grep`
 - `skills/tails-gain/SKILL.md`: four-pillar impact scoreboard and benchmark gains
-- `skills/tails-end/SKILL.md`: session close, distills session memory into the wiki (`scripts/memory.js`)
+- `skills/tails-end/SKILL.md`: session close, distills session memory into the wiki (`scripts/memory.js`); a subagent checks an open handoff where the host has them, skipped elsewhere
 - `skills/tails-stats/SKILL.md`: real context footprint (`scripts/stats.js`)
 - `skills/tails-doctor/SKILL.md`: install diagnostics (`scripts/doctor.js`)
 - `skills/tails-help/SKILL.md`: quick reference

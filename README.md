@@ -126,13 +126,13 @@ LLM_Tails is one prompt: [`skills/tails/SKILL.md`](skills/tails/SKILL.md). The c
 | Command | What it does |
 |---------|-------------|
 | `/tails [lite\|full\|ultra\|off]` | Set the intensity, or report current level |
-| `/tails-review` | Rebuilt quality review: 4-part findings (What this is, Problem, Fix, Consequence) across all four pillars |
+| `/tails-review` | Rebuilt quality review: 4-part findings (What this is, Problem, Fix, Consequence) across all four pillars; `fresh` runs it in a subagent that never saw the chat |
 | `/tails-audit` | Whole-repo quality audit: bloat, hallucination risks, consistency, and wiki health |
 | `/tails-wiki-init` | Scaffold 3-layer persistent wiki (`raw/`, `wiki/`, `AGENTS.md`) from current codebase |
 | `/tails-wiki-ingest` | Process a new source into the wiki, preserving immutable raw sources |
 | `/tails-wiki-lint` | Health-check the wiki against code (stale claims, contradictions, orphans, gaps), starting with a mechanical scan of `wiki/`, `AGENTS.md`, `CLAUDE.md` and rule files for dead paths, `file:L<n>` past the end, and missing `npm run` scripts (`npm run context-lint`) |
 | `/tails-wiki-query` | Query the wiki with ranked (BM25) section search, 1-hop relationship traversal, and compounding knowledge filing (`--save`) |
-| `/tails-end` | Close the session: distill decisions, rejected approaches, and gotchas into the wiki (`log.md` + affected pages) and write the cross-agent handoff (`handoff.md`) |
+| `/tails-end` | Close the session: distill decisions, rejected approaches, and gotchas into the wiki (`log.md` + affected pages) and write the cross-agent handoff (`handoff.md`), which a fresh subagent then checks for gaps |
 | `/tails-debt` | Harvest `tails:` and `shortcut:` comments into a tracked ledger via git-aware scan |
 | `/tails-gain` | Show the measured four-pillar impact scoreboard and benchmark gains |
 | `/tails-stats` | Show the real context footprint LLM_Tails adds here: rules, codebase map, session memory |
@@ -335,6 +335,8 @@ It detects and cooperates with **context-mode, ai-memory, claude-mem, context7, 
 - Companions LLM_Tails detects and cooperates with (nothing bundled): **[context7](https://github.com/upstash/context7)**, **[serena](https://github.com/oraios/serena)**, **[claude-mem](https://github.com/thedotmack/claude-mem)**, **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**, **[qmd](https://github.com/tobi/qmd)**, **[caveman](https://github.com/JuliusBrussee/caveman)**, plus context-mode and ai-memory above.
 
 - **[Winston Koh](https://github.com/winstonkoh87)** for **[Athena-Public](https://github.com/winstonkoh87/Athena-Public)** — the inspiration for the explicit session close (`/tails-end`), the strict state-vs-history split in the wiki, and the "don't agree to please" honesty rule. Independent implementations; no Athena code is used.
+
+- **[Elephant-Goldfish Model](https://github.com/google/elephant-goldfish-model)** (Apache-2.0) — the zero-context reviewer behind the `/tails-end` fresh-eyes check and `/tails-review fresh`. Idea only; no EGM prompts or code are used.
 
 LLM_Tails exists to synthesize and extend these two great concepts into a unified, cross-agent ecosystem.
 

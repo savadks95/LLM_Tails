@@ -6,6 +6,7 @@ description: >
   lean minimal code. Reads the connected code, not just the diff. Each finding has
   a concrete case and four structured parts. Use for "review this", "tails review",
   "/tails-review", "review my PR", "is this over-engineered", "audit this diff".
+  "/tails-review fresh" runs it in a subagent that never saw the chat.
 ---
 
 Review a change through all four LLM_Tails pillars like the senior developer who will be paged when it breaks:
@@ -15,6 +16,10 @@ Review a change through all four LLM_Tails pillars like the senior developer who
 4. **Enforce consistency:** match naming conventions, patterns, and error strategies.
 
 This is a report the user asked for, so give it in full.
+
+## Fresh eyes (`/tails-review fresh`)
+
+A reviewer who watched the change being written shares its blind spots. On `fresh`, "fresh eyes" or "goldfish", spawn one subagent and brief it with only the review target (diff range, branch, PR or files) and sections 1–4 of this skill. Leave out the intent, your reasoning and what you suspect: it reads the diff and the connected code itself. Relay its report as is, then add one line per finding you dispute, with the evidence. Can't spawn subagents: say so and suggest running `/tails-review` in a new session.
 
 ## 1. Understand first
 

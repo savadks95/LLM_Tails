@@ -6,7 +6,7 @@ description: >
   appends one history entry to wiki/log.md, updates the living wiki pages the
   session affected, flags pages it made stale, and writes wiki/handoff.md so the
   next session (any agent, machine or teammate) picks up where this one left
-  off. Use for "/tails-end",
+  off, checked by a fresh subagent that never saw the chat. Use for "/tails-end",
   "tails end", "wrap up", "end session", "save what we learned", or before
   closing a long session.
 argument-hint: "[notes]"
@@ -63,7 +63,12 @@ Turn this session's working memory into durable project knowledge. Living state 
      ```
      Nothing left to hand off (work finished, nothing open) → write `Status: done` with a one-line summary; a done handoff is not injected. Add `handoff.md` to `wiki/index.md` the first time.
 
-4. **No wiki?** Don't create one unasked. Print the distilled summary (same shape as the log entry) and suggest `/tails-wiki-init` if the project would benefit.
+4. **Fresh-eyes check** (only for a `Status: open` handoff). The next session has only the file, not this chat, so test it the same way: spawn one subagent and give it this prompt and nothing else (no summary, no hints):
+   > Read `wiki/handoff.md`, then the files it names. Do not edit anything. Without asking anyone, list what you would still need to know to take the next step: missing paths or commands, unstated assumptions, terms it never defines, a step you could not start. At most five lines, or `Nothing missing.`
+
+   Fill each real gap in `handoff.md` from what you know, staying under the size limit. One pass; don't re-check. Skip it when the user says "skip check" or the host can't spawn subagents, and say so in the output.
+
+5. **No wiki?** Don't create one unasked. Print the distilled summary (same shape as the log entry) and suggest `/tails-wiki-init` if the project would benefit.
 
 ## Updating a page
 
@@ -86,9 +91,9 @@ The entry is what stops the next session from trusting a stale copy. Can't tell 
 
 ## Output
 
-At most five lines: what was filed where, pages updated, pages flagged stale, handoff status and next step.
+At most five lines: what was filed where, pages updated, pages flagged stale, handoff status and next step, and the fresh-eyes check result (gaps filled, nothing missing, or skipped).
 
 ## Boundaries
 
-Writes to `wiki/` only; never changes code. One-shot.
+Writes to `wiki/` only; never changes code. The fresh-eyes subagent only reads. One-shot.
 "stop tails-end": cancel before writing.
