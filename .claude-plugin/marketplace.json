@@ -1,0 +1,16 @@
+{
+  "name": "tails",
+  "description": "LLM_Tails: disciplined AI coding mode for Claude Code.",
+  "owner": {
+    "name": "savadks95",
+    "url": "https://github.com/savadks95"
+  },
+  "plugins": [
+    {
+      "name": "llm-tails",
+      "source": "./",
+      "description": "Disciplined AI coding mode. Four pillars: understand first, minimal code, no hallucination, enforce consistency.",
+      "category": "productivity"
+    }
+  ]
+}

@@ -8,7 +8,7 @@ various AI coding agents.
 
 | Host | Files | Capabilities |
 |------|-------|-------------|
-| Claude Code | `.claude-plugin/plugin.json`, `hooks/claude-hooks.json`, `commands/`, `skills/` | Full plugin: lifecycle hooks, automated codebase map on SessionStart, `/tails` commands, mode persistence, subagent injection, session memory across compaction (PostToolUse / PostToolUseFailure); optional large-read guard (opt-in, see INSTALL.md) |
+| Claude Code | `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `hooks/claude-hooks.json`, `commands/`, `skills/` | Full plugin: lifecycle hooks, automated codebase map on SessionStart, `/tails` commands, mode persistence, subagent injection, session memory across compaction (PostToolUse / PostToolUseFailure); optional large-read guard (opt-in, see INSTALL.md) |
 | Codex | `.codex-plugin/plugin.json`, `hooks/claude-codex-hooks.json`, `commands/`, `skills/` | Plugin: SessionStart, SubagentStart, UserPromptSubmit, PostToolUse on `apply_patch` and `update_plan` (session memory records prompts, files and tasks; no tool errors, since Codex's shell `tool_response` carries no exit code) |
 | Antigravity (IDE) | `.agents/rules/llm-tails.md`, `.agents/plugins/marketplace.json`, `AGENTS.md` | Native workspace rules and IDE plugin discovery |
 | Antigravity CLI | `gemini-extension.json`, `AGENTS.md`, `commands/`, `skills/` | Extension: always-on context + slash commands + skills |
