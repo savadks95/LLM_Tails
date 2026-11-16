@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { defaultMode } = require('./tails-config');
-const { getTailsInstructions } = require('./tails-instructions');
+const { getSessionInstructions } = require('./tails-instructions');
 const {
   clearMode,
   cursorRuleNotice,
@@ -58,7 +58,7 @@ function activate(requestedMode, input = {}) {
   } catch (_) {}
 
   // 1. Core LLM_Tails instructions for active level
-  let output = getTailsInstructions(mode);
+  let output = getSessionInstructions(mode);
   const dir = projectDir || process.cwd();
 
   // 2. Companions (context-mode, ai-memory): say how the work is split instead of duplicating it.

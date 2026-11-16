@@ -36,7 +36,10 @@ const TOKEN_SHAPES = [
 
 const SECRET_PATTERNS = [
   [/-----BEGIN [A-Z ]*PRIVATE KEY( BLOCK)?-----[\s\S]*?(-----END [A-Z ]*PRIVATE KEY( BLOCK)?-----|$)/g, '[REDACTED KEY]'],
-  [new RegExp(`\\b(?:${TOKEN_SHAPES.join('|')})`, 'g'), '[REDACTED]'],
+  // Not \b: "_" is a word character, so "id_AKIA..." had no boundary and the key was kept.
+  // tails: a key glued to letters ("idAKIA...") still passes, since dropping the anchor masks
+  // "task-runner-..."; anchor-free matching per distinctive prefix (AKIA, ghp_) if that shows up.
+  [new RegExp(`(?<![A-Za-z0-9])(?:${TOKEN_SHAPES.join('|')})`, 'g'), '[REDACTED]'],
   [/\b(Bearer)\s+[A-Za-z0-9._~+/-]{8,}=*/gi, '$1 [REDACTED]'],
   [/(\/\/[^/\s:@]+:)[^@\s/]+@/g, '$1[REDACTED]@'],
   [/((?:api[_-]?key|secret|token|password|passwd|pwd)[\w-]*["']?\s*[:=]\s*)(["']?)[^\s"',;]+\2/gi, '$1[REDACTED]'],
@@ -45,8 +48,12 @@ const SECRET_PATTERNS = [
 // A prompt that corrects or constrains the agent is worth remembering verbatim.
 const DECISION = /^\s*(no|nope|don'?t|do not|never|stop|wrong|not that|instead|rather|avoid)\b|\b(instead of|don'?t use|do not use|never use|always use|from now on|prefer|keep it)\b/i;
 
+// Terminal colour codes and control bytes become spaces first: in "\x1b[0msk-..." the key is glued
+// to the "m" and no pattern sees where it starts. Idea from ai-memory (MIT), GHSA-6pmr-q79m.
+const CONTROL = /\x1b\[[0-?]*[ -/]*[@-~]|[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g;
+
 function redact(text) {
-  let out = String(text || '');
+  let out = String(text || '').replace(CONTROL, ' ');
   for (const [re, rep] of SECRET_PATTERNS) out = out.replace(re, rep);
   return out;
 }

@@ -13,7 +13,7 @@ if (!process.env.CLAUDE_PROJECT_DIR && !process.env.CURSOR_PROJECT_DIR) {
 }
 
 const { defaultMode } = require('../hooks/tails-config');
-const { getSubagentInstructions, getTailsInstructions } = require('../hooks/tails-instructions');
+const { getSessionInstructions, getSubagentInstructions } = require('../hooks/tails-instructions');
 const { readMode } = require('../hooks/tails-runtime');
 const { CONTEXT_LIMIT } = require('../hooks/tails-activate');
 const { BUDGET, GRAPH_BUDGET, buildMap } = require('../hooks/tails-map');
@@ -25,7 +25,7 @@ const ROOT = path.join(__dirname, '..');
 const tokens = (chars) => Math.round(chars / 4);
 
 function contextFootprint(mode = readMode() || defaultMode(), cwd = process.cwd()) {
-  const rules = getTailsInstructions(mode).length;
+  const rules = getSessionInstructions(mode).length;
   const companionsFound = detectCompanions(cwd);
   const companions = companionNotes(companionsFound).length;
   const handoffChars = handoff.readHandoff(cwd, Math.min(handoff.BUDGET, CONTEXT_LIMIT - rules - companions - 4)).length;

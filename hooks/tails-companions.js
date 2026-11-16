@@ -7,7 +7,8 @@
 //   context7 (upstash)                current library docs (Pillar 3: verify APIs)
 //   serena (oraios)                   LSP symbol navigation (Pillar 1: trace callers)
 //   codebase-memory-mcp (DeusData)    code graph (replaces most of the codebase map)
-//   qmd (tobi)                        hybrid local markdown search (wiki queries)
+//   gortex (zzet)                     code graph (Pillar 1: callers and blast radius)
+//   qmd (tobi)                       hybrid local markdown search (wiki queries)
 //   caveman (JuliusBrussee)           terse prose (LLM_Tails keeps honesty markers)
 // Detection reads Claude Code config only (enabled plugins, MCP servers, hook commands).
 // Read-only, best effort: any unreadable file counts as "not found".
@@ -25,6 +26,7 @@ const COMPANIONS = {
   context7: /context7(?!-admin)|ctx7/i, // context7-admin manages libraries, it has no docs tools
   serena: /serena/i,
   'codebase-memory-mcp': /codebase-memory/i,
+  gortex: /gortex/i,
   qmd: /(^|[^a-z])qmd([^a-z]|$)/i,
   caveman: /caveman/i,
 };
@@ -41,6 +43,8 @@ const NOTES = {
   serena: 'serena: trace callers and definitions with find_symbol / find_referencing_symbols instead of grep.',
   'codebase-memory-mcp': 'codebase-memory-mcp: use search_graph → trace_path for structure and callers; ' +
     'the LLM_Tails map is trimmed.',
+  gortex: 'gortex: trace callers and blast radius with search_symbols / get_callers / find_usages instead of grep; ' +
+    'run verify_change before calling a signature change done.',
   qmd: 'qmd: answer wiki questions with `qmd query "<topic>"` (index once: `qmd collection add wiki --name wiki`).',
   caveman: 'caveman: talk tersely, but never cut [verified]/[uncertain] markers, citations, or "not verified".',
 };

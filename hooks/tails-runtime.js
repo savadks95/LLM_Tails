@@ -104,6 +104,19 @@ function isCodexMemoryAgent(input = {}) {
     String(input.prompt || '').trimStart().startsWith('## Memory Writing Agent');
 }
 
+// What the user typed, without what the host put in the prompt channel. Context blocks the host
+// wraps around the words (system reminders, IDE selections) are removed and the words kept. A
+// machine turn (task notification, message from another session, the summary that opens a
+// compacted session) is not a user prompt at all: ''. Ideas from Hindsight #6491 and ai-memory
+// e9ad4126 (both MIT); written fresh.
+const INJECTED_BLOCK = /<(system-reminder|ide_[a-z_]+)\b[^>]*>[\s\S]*?<\/\1>/g;
+const MACHINE_TURN = /^(?:<(?:task-notification|teammate-message|cross-session-message)[\s/>]|Another Claude session sent a message|This session is being continued from a previous conversation)/;
+
+function userPromptText(prompt) {
+  const text = String(prompt || '').trim();
+  return MACHINE_TURN.test(text) ? '' : text.replace(INJECTED_BLOCK, '').trim();
+}
+
 // Synchronous: process.exit() is often called right after this, and on some platforms
 // asynchronous pipe writes would be dropped when the process exits.
 function writeOut(text) {
@@ -177,6 +190,7 @@ module.exports = {
   setMode,
   stateDir,
   stripBom,
+  userPromptText,
   writeHookOutput,
   writeOut,
 };

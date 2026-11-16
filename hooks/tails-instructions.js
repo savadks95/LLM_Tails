@@ -83,9 +83,19 @@ function getSubagentInstructions(mode) {
   }
 }
 
+// Session start shares one ~9,800-char budget with the handoff, session memory and codebase map
+// (see tails-activate.js). The full skill takes ~8,800 of it and starves them, so the session gets
+// the compact ruleset; TAILS_RULES=full restores the full skill body.
+function getSessionInstructions(mode) {
+  if (process.env.TAILS_RULES === 'full') return getTailsInstructions(mode);
+  const compact = getSubagentInstructions(mode);
+  return compact && compact + '\n\nFull rules and examples: the `tails` skill. Switch level: `/tails lite|full|ultra`. Off: "stop tails".';
+}
+
 module.exports = {
   filterSkillBodyForMode,
   getFallbackInstructions,
+  getSessionInstructions,
   getSubagentInstructions,
   getTailsInstructions,
 };

@@ -175,6 +175,7 @@ Context is a budget. LLM_Tails spends it on understanding, not on raw data:
   | [context7](https://github.com/upstash/context7) | Verify library APIs against current docs (`resolve-library-id` → `query-docs`, or `ctx7 docs`) before tagging them `[verified]` (Pillar 3) |
   | [serena](https://github.com/oraios/serena) | Trace callers and definitions with `find_symbol` / `find_referencing_symbols` instead of grep (Pillar 1) |
   | [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp) | Use `search_graph` → `trace_path` for structure; the LLM_Tails map shrinks to 600 chars |
+  | [gortex](https://github.com/zzet/gortex) | Trace callers and blast radius with `search_symbols` / `get_callers` / `find_usages` instead of grep; run `verify_change` before calling a signature change done (Pillar 1) |
   | [qmd](https://github.com/tobi/qmd) | Answer wiki questions with `qmd query "<topic>"` (hybrid search) |
   | [caveman](https://github.com/JuliusBrussee/caveman) | Stay terse, but never cut `[verified]`/`[uncertain]` markers, citations or "not verified" |
 
@@ -186,7 +187,7 @@ Context is a budget. LLM_Tails spends it on understanding, not on raw data:
   ```
   Enable the hook with one settings entry ([INSTALL.md](INSTALL.md#optional-guard-patterns-claude-code)). Idea from [seatbelt](https://github.com/dripston/seatbelt).
 - **Test check in `ultra` (Claude Code):** when a turn changed source files but no test, the agent is sent back once to add a runnable check or say in one line why none is needed. No test runner, no model call; `lite` and `full` are unaffected. Idea from [tdd-guard](https://github.com/nizos/tdd-guard).
-- **Fits the host's limit:** rules, memory, and map share one budget under Claude Code's 10,000-character limit for session-start context; after compaction, memory wins over the map.
+- **Fits the host's limit:** rules, memory, and map share one budget under Claude Code's 10,000-character limit for session-start context; after compaction, memory wins over the map. Session start injects the compact rules (the `AGENTS.md` text) so the handoff, memory and map get their full budgets; `TAILS_RULES=full` injects the whole skill instead.
 
 See the cost for your project anytime with `/tails-stats`, and check the install with `/tails-doctor`.
 
@@ -290,7 +291,7 @@ LLM_Tails works with **Ponytail** — they can coexist. Ponytail governs code mi
 
 It also works with **Caveman** — Caveman shrinks what the agent says, LLM_Tails governs what it builds and how honestly it communicates.
 
-It detects and cooperates with **context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, qmd and caveman** when they are installed alongside: see the companions table in [Context discipline & session memory](#context-discipline--session-memory).
+It detects and cooperates with **context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, qmd and caveman** when they are installed alongside: see the companions table in [Context discipline & session memory](#context-discipline--session-memory).
 
 ## Acknowledgments & Appreciation
 
@@ -332,7 +333,7 @@ It detects and cooperates with **context-mode, ai-memory, claude-mem, context7, 
 
 - **[promptfoo](https://github.com/promptfoo/promptfoo)** (MIT) — the harness for the live-model benchmark (run through `npx`, not bundled).
 
-- Companions LLM_Tails detects and cooperates with (nothing bundled): **[context7](https://github.com/upstash/context7)**, **[serena](https://github.com/oraios/serena)**, **[claude-mem](https://github.com/thedotmack/claude-mem)**, **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**, **[qmd](https://github.com/tobi/qmd)**, **[caveman](https://github.com/JuliusBrussee/caveman)**, plus context-mode and ai-memory above.
+- Companions LLM_Tails detects and cooperates with (nothing bundled): **[context7](https://github.com/upstash/context7)**, **[serena](https://github.com/oraios/serena)**, **[claude-mem](https://github.com/thedotmack/claude-mem)**, **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**, **[gortex](https://github.com/zzet/gortex)**, **[qmd](https://github.com/tobi/qmd)**, **[caveman](https://github.com/JuliusBrussee/caveman)**, plus context-mode and ai-memory above.
 
 - **[Winston Koh](https://github.com/winstonkoh87)** for **[Athena-Public](https://github.com/winstonkoh87/Athena-Public)** — the inspiration for the explicit session close (`/tails-end`), the strict state-vs-history split in the wiki, and the "don't agree to please" honesty rule. Independent implementations; no Athena code is used.
 

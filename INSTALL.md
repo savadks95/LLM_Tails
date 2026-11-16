@@ -89,6 +89,7 @@ Optional env vars:
 
 | Variable | Default | Effect |
 |----------|---------|--------|
+| `TAILS_RULES=full` | compact | Inject the full `tails` skill body at session start instead of the compact rules (leaves ~1,000 chars for handoff, memory and map) |
 | `TAILS_MAP=0` | on | Disable the codebase map at session start |
 | `TAILS_MAP_CHARS` | `2000` | Codebase map character budget |
 | `TAILS_MEMORY=0` | on | Disable session memory (Claude Code, Codex) |

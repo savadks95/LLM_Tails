@@ -43,6 +43,13 @@ try {
     'eyJhbGciOiJIUzI1NiJ9xx.eyJzdWIiOiIxMjM0NTY3ODkwIn0.' + 's'.repeat(20)]) {
     assert.ok(!session.redact(`deploy with ${token} now`).includes(token), `gitleaks shape masked: ${token.slice(0, 8)}`);
   }
+  // A colour code or "_" right before a key used to hide it from the word boundary
+  const sk = 'sk-ant-api03-' + 'A'.repeat(40);
+  const aws = 'AKIA' + 'B'.repeat(16);
+  for (const glued of ['\x1b[31m' + sk, '\x1b[0mBearer abcdefgh12345', 'id_' + aws, 'token\x00' + aws]) {
+    assert.ok(!/AAAAAAAAAA|BBBBBBBBBB|abcdefgh12345/.test(session.clip(glued)), `glued key masked: ${JSON.stringify(glued.slice(0, 8))}`);
+  }
+  assert.strictEqual(session.redact('use task-runner-config-loader here'), 'use task-runner-config-loader here', 'sk- inside a word stays');
 
   // 2. Hooks record prompts, corrections, files, tasks and errors
   const id = 'sess-1';
@@ -109,10 +116,19 @@ try {
   const next = JSON.parse(runHook('tails-activate.js', { session_id: 'sess-2', source: 'startup' }));
   assert.ok(next.hookSpecificOutput.additionalContext.includes('LLM_TAILS MODE ACTIVE'), 'New session starts active');
 
-  // 7. Subagents get the compact ruleset, well under the full skill
+  // 7. Subagents and session start get the compact ruleset, so the handoff, memory and map keep
+  // their budgets; TAILS_RULES=full restores the full skill
   const sub = JSON.parse(runHook('tails-subagent.js', {})).hookSpecificOutput.additionalContext;
   assert.ok(sub.includes('LLM_TAILS MODE ACTIVE') && sub.includes('Never hallucinate'));
-  assert.ok(sub.length < fresh.hookSpecificOutput.additionalContext.length * 0.7, 'Subagent rules are compact');
+  const { getSessionInstructions } = require('../hooks/tails-instructions');
+  const compact = getSessionInstructions('full');
+  const start = fresh.hookSpecificOutput.additionalContext; // level differs here: set earlier by /tails ultra
+  assert.ok(start.includes('Full rules and examples: the `tails` skill') && !start.includes('## Persistence'),
+    'Session start injects the compact rules');
+  assert.ok(compact.length < CONTEXT_LIMIT / 2, 'Compact rules leave half the budget for project context');
+  process.env.TAILS_RULES = 'full';
+  assert.ok(compact.length < getSessionInstructions('full').length * 0.7, 'TAILS_RULES=full restores the full skill');
+  delete process.env.TAILS_RULES;
 
   // 8. Hook input piped through PowerShell on Windows starts with a BOM, raw or as "ï»¿"
   const bomId = 'sess-bom';
@@ -160,6 +176,21 @@ try {
     'Recall runs once per session');
   assert.strictEqual(runHook('tails-mode-tracker.js', { session_id: 'sess-recall-off', prompt: 'login rate limiting' },
     { TAILS_RECALL: '0' }), '', 'TAILS_RECALL=0 disables it');
+
+  // 11. Host text in the prompt channel: machine turns record nothing, wrapper blocks are dropped
+  const mt = 'sess-machine';
+  for (const prompt of [
+    '<task-notification><status>completed</status><summary>Agent finished</summary></task-notification>',
+    'Another Claude session sent a message: never use the cache',
+    'This session is being continued from a previous conversation. The user chose X instead of Y.',
+  ]) runHook('tails-mode-tracker.js', { session_id: mt, prompt });
+  runHook('tails-mode-tracker.js', { session_id: mt,
+    prompt: '<system-reminder>Do not use npm instead of pnpm.</system-reminder>\nAdd a health check route' });
+  const mtEvents = session.readEvents(mt);
+  assert.deepStrictEqual(mtEvents.map((e) => [e.type, e.text]), [['prompt', 'Add a health check route']],
+    'Only the user\'s words are recorded; no decision taken from host text');
+  assert.strictEqual(require('../hooks/tails-runtime').userPromptText('<pasted_content id="1">x</pasted_content> fix'),
+    '<pasted_content id="1">x</pasted_content> fix', 'Unknown tags are the user\'s text');
 
   console.log('✓ tests/session.test.js passed');
 } finally {
