@@ -31,6 +31,7 @@ const TOKEN_SHAPES = [
   'hf_[A-Za-z]{34}', // Hugging Face
   'SG\\.[A-Za-z0-9=_.-]{66}', 'SK[0-9a-fA-F]{32}', // SendGrid, Twilio
   'dop_v1_[a-f0-9]{64}', 'HRKU-AA[0-9A-Za-z_-]{58}', 'shpat_[a-fA-F0-9]{32}', // DigitalOcean, Heroku, Shopify
+  'ATATT3[A-Za-z0-9_=-]{186}', // Atlassian (Jira, Confluence, Bitbucket); idea from claude-mem (Apache-2.0) #6046
   'ey[A-Za-z0-9]{17,}\\.ey[A-Za-z0-9/\\\\_-]{17,}\\.(?:[A-Za-z0-9/\\\\_-]{10,}={0,2})?', // JWT
 ];
 
@@ -39,7 +40,9 @@ const SECRET_PATTERNS = [
   // Not \b: "_" is a word character, so "id_AKIA..." had no boundary and the key was kept.
   // tails: a key glued to letters ("idAKIA...") still passes, since dropping the anchor masks
   // "task-runner-..."; anchor-free matching per distinctive prefix (AKIA, ghp_) if that shows up.
-  [new RegExp(`(?<![A-Za-z0-9])(?:${TOKEN_SHAPES.join('|')})`, 'g'), '[REDACTED]'],
+  // JSON-escaped output ("failed\nAKIA...") glues the key to the "n" of a literal \n, \r or \t:
+  // that escape counts as a boundary too. Idea from claude-mem (Apache-2.0), #6046.
+  [new RegExp(`(?:(?<=\\\\[nrt])|(?<![A-Za-z0-9]))(?:${TOKEN_SHAPES.join('|')})`, 'g'), '[REDACTED]'],
   [/\b(Bearer)\s+[A-Za-z0-9._~+/-]{8,}=*/gi, '$1 [REDACTED]'],
   [/(\/\/[^/\s:@]+:)[^@\s/]+@/g, '$1[REDACTED]@'],
   [/((?:api[_-]?key|secret|token|password|passwd|pwd)[\w-]*["']?\s*[:=]\s*)(["']?)[^\s"',;]+\2/gi, '$1[REDACTED]'],
@@ -58,9 +61,13 @@ function redact(text) {
   return out;
 }
 
+// Long text keeps both ends: a pasted log with "never use Redis" at the bottom must keep the
+// instruction, and an error's cause is often its last line. Idea from ai-memory (MIT), 1d28caf6.
 function clip(text, max = TEXT_MAX) {
   const flat = redact(text).replace(/\s+/g, ' ').trim();
-  return flat.length > max ? flat.slice(0, max - 3) + '...' : flat;
+  if (flat.length <= max) return flat;
+  const tail = Math.floor((max - 5) / 2);
+  return flat.slice(0, max - 5 - tail) + ' ... ' + flat.slice(-tail);
 }
 
 function enabled() {

@@ -51,6 +51,51 @@ try {
   assert.ok(!/auth\.js:L2|wiki\/index|example|in-fence|\.\.\/src\/auth/.test(text), 'No false positives:\n' + text);
   assert.strictEqual(findings.length, 4, text);
 
+  // 1b. Wiki checks: broken [[links]], near-duplicate page names, and a page older than a source's last commit
+  const repo = path.join(tmp, 'repo');
+  fs.mkdirSync(path.join(repo, 'src'), { recursive: true });
+  fs.mkdirSync(path.join(repo, 'wiki', 'entities'), { recursive: true });
+  const git = (...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args],
+    { cwd: repo, encoding: 'utf8', env: { ...process.env, GIT_COMMITTER_DATE: '2026-03-10T12:00:00Z', GIT_AUTHOR_DATE: '2026-03-10T12:00:00Z' } });
+  fs.writeFileSync(path.join(repo, 'src', 'limiter.js'), 'module.exports = {};\n');
+  fs.writeFileSync(path.join(repo, 'src', 'login.js'), 'module.exports = {};\n');
+  fs.writeFileSync(path.join(repo, 'wiki', 'entities', 'rate-limit.md'),
+    '---\nupdated: 2026-03-01\nsources: [src/limiter.js, src/gone.js]\n---\n# Rate limit\nSee [[login]] and [[entities/rate_limits]].\n```\n[[in-fence]]\n```\n');
+  fs.writeFileSync(path.join(repo, 'wiki', 'entities', 'rate_limits.md'), '# Rate limits\nDuplicate of [[rate-limit]].\n');
+  fs.writeFileSync(path.join(repo, 'wiki', 'login.md'),
+    '---\nupdated: 2026-03-20\nsources:\n  - src/login.js\n---\n# Login\nUses [[nowhere]].\n');
+  const hashOf = (f) => spawnSync(process.execPath, [path.join(__dirname, '..', 'scripts', 'context-lint.js'), '--hash', f],
+    { cwd: repo, encoding: 'utf8' }).stdout.trim();
+  fs.writeFileSync(path.join(repo, 'wiki', 'hashed.md'),
+    `---\nsources: [${hashOf('src/limiter.js')}, src/login.js#000000000000]\n---\n# Hashed\n`);
+  fs.writeFileSync(path.join(repo, 'wiki', 'orphan.md'), '---\nsources: [src/nope.js]\n---\n# Orphan\n');
+  fs.writeFileSync(path.join(repo, 'wiki', 'index.md'), '# Index\n- [[login]]\n- [Hashed](hashed.md)\n- [[orphan]]\n');
+  git('init', '-q'); git('add', '.'); git('commit', '-q', '-m', 'init');
+  const wikiText = lint(repo).findings.join('\n');
+  assert.ok(wikiText.includes('wiki/entities/rate-limit.md is not listed in the index') &&
+    !/wiki\/(login|hashed|orphan|index)\.md is not listed/.test(wikiText), 'Index drift: only unlisted pages\n' + wikiText);
+  assert.ok(wikiText.includes('wiki/hashed.md  source `src/login.js` changed since the page was written'), wikiText);
+  assert.ok(!wikiText.includes('wiki/hashed.md  source `src/limiter.js`'), 'A matching hash is current, whatever git says:\n' + wikiText);
+  assert.ok(wikiText.includes('wiki/orphan.md  orphaned: none of its sources exist'), wikiText);
+  assert.ok(wikiText.includes('wiki/login.md:7  [[nowhere]]: no such wiki page'), wikiText);
+  assert.ok(!/\[\[(login|entities\/rate_limits|rate-limit|in-fence)\]\]/.test(wikiText), 'Resolvable links and fenced links pass:\n' + wikiText);
+  assert.ok(wikiText.includes('possible duplicate pages: wiki/entities/rate-limit.md, wiki/entities/rate_limits.md'), wikiText);
+  if (git('log', '-1').status === 0) {
+    assert.ok(wikiText.includes('source `src/limiter.js` changed 2026-03-10, after updated: 2026-03-01'), wikiText);
+    assert.ok(!wikiText.includes('wiki/login.md  source'), 'A page updated after its source is current:\n' + wikiText);
+  }
+  assert.ok(wikiText.includes('source `src/gone.js` not found'), wikiText);
+
+  // 1c. First edit of a file a wiki page lists in sources: points at that page, once per session
+  const edit = { session_id: 'sess-ptr', hook_event_name: 'PostToolUse', tool_name: 'Edit',
+    tool_input: { file_path: path.join(repo, 'src', 'login.js') } };
+  const pointer = runHook('tails-post-tool.js', edit, { CLAUDE_PROJECT_DIR: repo });
+  assert.ok(pointer && pointer.hookSpecificOutput.hookEventName === 'PostToolUse' &&
+    pointer.hookSpecificOutput.additionalContext.includes('wiki/login.md'), JSON.stringify(pointer));
+  assert.strictEqual(runHook('tails-post-tool.js', edit, { CLAUDE_PROJECT_DIR: repo }), null, 'Second edit: silent');
+  assert.strictEqual(runHook('tails-post-tool.js', { ...edit, session_id: 'sess-ptr2',
+    tool_input: { file_path: path.join(repo, 'README.md') } }, { CLAUDE_PROJECT_DIR: repo }), null, 'Uncited file: silent');
+
   // 2. Guard patterns from AGENTS.md / CLAUDE.md: ask before a matching command or file edit
   fs.writeFileSync(path.join(project, 'CLAUDE.md'), [
     '<!-- tails-guard: /\\bredis\\b/i No Redis: single instance, keep rate limits in memory -->',

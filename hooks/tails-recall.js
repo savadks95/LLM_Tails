@@ -43,7 +43,11 @@ function recallForPrompt(sessionId, prompt, root = projectDir || process.cwd()) 
   const header = 'LLM_TAILS WIKI RECALL (keyword matches in wiki/ for this request; they may not bear on it. ' +
     'Use what is relevant, ignore the rest, verify against the code before relying on it, read the page for more):';
   let out = header;
-  for (const r of hits.filter((h) => h.score >= top * MIN_SHARE).slice(0, MAX_HITS)) {
+  // Absolute floor too: the share above is relative, so an unrelated prompt sharing one word
+  // ("nightly") still injected that section. On topic = two prompt words, or one in the heading.
+  // Idea from the LLM Wiki gist thread (antondzi-legacy, gist comment 6285217).
+  const onTopic = (h) => h.matched >= 2 || tokenize(h.heading).some((t) => terms.includes(t));
+  for (const r of hits.filter((h) => h.score >= top * MIN_SHARE && onTopic(h)).slice(0, MAX_HITS)) {
     const line = `\n- ${r.file} > ${r.heading}: ${r.snippet}`;
     if (out.length + line.length > BUDGET) break;
     out += line;

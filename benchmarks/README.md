@@ -49,9 +49,11 @@ node benchmarks/run.js
 `benchmarks/live/` sends the same four tasks to a real model through [promptfoo](https://github.com/promptfoo/promptfoo), once with no rules (`prompts/baseline.js`) and once with `AGENTS.md` as the system prompt (`prompts/tails.js`). `assert.js` reuses the checks above: correctness is the pass/fail gate; four-pillar compliance and code size are reported as scores. Needs `ANTHROPIC_API_KEY`:
 
 ```bash
-npm run bench:live        # npx promptfoo eval -c benchmarks/live/promptfooconfig.yaml
-npx promptfoo view        # side-by-side results in the browser
+npm run bench:live        # npx promptfoo@0.126.0 eval -c benchmarks/live/promptfooconfig.yaml
+npx promptfoo@0.126.0 view  # side-by-side results in the browser
 ```
+
+Pinned: promptfoo releases after 0.126.0 need Node ^22.22.2, ^24.15.0 or >=26 (promptfoo #12531).
 
 ### Files
 - [`loc.js`](loc.js): LOC measurement and code block extraction.

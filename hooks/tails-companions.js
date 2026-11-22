@@ -11,6 +11,10 @@
 //   graphify (Graphify-Labs)          code graph; its hooks can deny Read until the graph is queried
 //   qmd (tobi)                       hybrid local markdown search (wiki queries)
 //   caveman (JuliusBrussee)           terse prose (LLM_Tails keeps honesty markers)
+//   sqz (ojuschugh1)                  rewrites Bash commands and compresses their output
+//   MemPalace                         searchable memory of past conversations
+//   codesight (Houseofmvps)           code map and blast radius (Pillar 1)
+//   Link (gowtham0992)                personal, cross-project memory
 // Detection reads Claude Code config only (enabled plugins, MCP servers, hook commands).
 // Read-only, best effort: any unreadable file counts as "not found".
 
@@ -31,6 +35,10 @@ const COMPANIONS = {
   graphify: /graphify/i, // hook command `<abs path>/graphify hook-guard ...`, or the MCP server
   qmd: /(^|[^a-z])qmd([^a-z]|$)/i,
   caveman: /caveman/i,
+  sqz: /(^|[^a-z])sqz([^a-z]|$)/i, // hook `sqz hook claude`, MCP command `sqz-mcp`
+  mempalace: /mempal/i, // plugin mempalace@mempalace, MCP `mempalace-mcp`, hooks mempal-*-hook.sh
+  codesight: /codesight/i,
+  link: /link_mcp/i, // `python3 -m link_mcp`: the server name "link" alone is too generic
 };
 const NOTES_BUDGET = 1000;
 
@@ -50,7 +58,14 @@ const NOTES = {
   graphify: 'graphify: orient with `graphify query/path/explain` (MCP: query_graph / get_neighbors / shortest_path) ' +
     'before grep; still Read every file you edit. INFERRED/AMBIGUOUS edges are [likely] until read.',
   qmd: 'qmd: answer wiki questions with `qmd query "<topic>"` (index once: `qmd collection add wiki --name wiki`).',
-  caveman: 'caveman: talk tersely, but never cut [verified]/[uncertain] markers, citations, or "not verified".',
+  caveman: 'caveman: talk tersely, but never cut [verified]/[uncertain] markers, citations, or "not verified". ' +
+    'Fetch tool output its proxy elided with caveman_retrieve before tagging [verified].',
+  sqz: 'sqz: it rewrites Bash commands and compresses their output. Get the exact output with `sqz expand` ' +
+    'before tagging [verified]; tails-guard patterns may see the rewritten command.',
+  mempalace: 'MemPalace: search past conversations with mempalace_search before re-investigating; ' +
+    'wiki/ stays the reviewed project record.',
+  codesight: 'codesight: before editing a widely imported file, check codesight_get_blast_radius.',
+  link: 'Link: personal and cross-project memory (`lnk recall`); facts about this project stay in wiki/.',
 };
 
 function readJson(file) {

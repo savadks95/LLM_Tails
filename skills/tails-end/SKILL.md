@@ -32,6 +32,7 @@ Turn this session's working memory into durable project knowledge. Living state 
    - Gotchas found while debugging, with the root cause.
    - Unfinished work and the next step.
    Drop: typos fixed, dead-end debugging steps, anything already true in the code and obvious from it.
+   - **Durable bar.** File a lesson only if someone working from the current code would plausibly repeat the mistake or redo the investigation without it. Can a test, lint rule, guard line or code comment hold it instead? Prefer that, and file only the reasoning code cannot carry. (After compound-engineering-plugin, MIT.)
    - **Final state wins.** A session revises itself: file only what ended up in effect. A superseded proposal appears only inside a rejected line ("proposed X, changed to Y because Z"); a setting changed three times is filed once, with its last value.
    - **Claims are not facts.** "Fixed", "passes", "works" said by an agent, you included, is a claim until a check proves it. Run the check, or file it as "reported fixed, not verified".
    - **Scale to substance, not length.** A short decision chat is one or two lines; never one item per message.
@@ -43,7 +44,7 @@ Turn this session's working memory into durable project knowledge. Living state 
      ## [YYYY-MM-DD] session | <short title>
      Decided: <...>. Rejected: <...>. Changed: <files/areas>. Next: <...>. Pages updated: <list>.
      ```
-   - Update the living pages the session affected (`architecture.md`, `conventions.md`, `entities/*`) in place, citing code: `(see src/x.ts:L12)`. Follow **Updating a page** below.
+   - Update the living pages the session affected (`architecture.md`, `conventions.md`, `entities/*`) in place, citing code: `(see src/x.ts:L12)`. Set their frontmatter `updated:` to today. Follow **Updating a page** below.
    - A page the session made wrong: fix it, or mark `⚠️ stale since <date>: <what changed>` if it needs more than you know.
    - A page, handoff or memory note you verified was wrong all along: fix it and log a **correction** (below).
    - New page created → add it to `wiki/index.md`.

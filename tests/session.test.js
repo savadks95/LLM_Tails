@@ -50,6 +50,13 @@ try {
     assert.ok(!/AAAAAAAAAA|BBBBBBBBBB|abcdefgh12345/.test(session.clip(glued)), `glued key masked: ${JSON.stringify(glued.slice(0, 8))}`);
   }
   assert.strictEqual(session.redact('use task-runner-config-loader here'), 'use task-runner-config-loader here', 'sk- inside a word stays');
+  // JSON-escaped output glues a key to the "n" of a literal \n; Atlassian tokens have their own shape
+  assert.ok(!session.redact('{"err":"failed\\n' + aws + '"}').includes(aws), 'key after a literal \\n masked');
+  assert.ok(!session.redact('jira ATATT3' + 'x'.repeat(186)).includes('xxxxxxxxxx'), 'Atlassian token masked');
+  assert.strictEqual(session.redact('see\\nothing new'), 'see\\nothing new', 'a literal \\n alone is untouched');
+  // Long text keeps both ends: the instruction after a pasted log survives
+  const clipped = session.clip('pasted log line '.repeat(30) + 'never use Redis');
+  assert.ok(clipped.length === 200 && clipped.startsWith('pasted log') && clipped.endsWith('never use Redis'), clipped);
 
   // 2. Hooks record prompts, corrections, files, tasks and errors
   const id = 'sess-1';
@@ -62,6 +69,12 @@ try {
     tool_input: { todos: [{ content: 'Write limiter', status: 'completed' }, { content: 'Add test', status: 'in_progress' }] } });
   runHook('tails-post-tool.js', { session_id: id, hook_event_name: 'PostToolUseFailure', tool_name: 'Bash',
     error: 'Exit code 1\ntoken=abc123secret npm test failed' });
+  // AskUserQuestion answers are user decisions (shape of Claude Code's toolUseResult)
+  const question = 'Which store should the limiter use? '.repeat(6);
+  runHook('tails-post-tool.js', { session_id: id, hook_event_name: 'PostToolUse', tool_name: 'AskUserQuestion',
+    tool_input: { questions: [{ question, header: 'Store', options: [], multiSelect: false }] },
+    tool_response: { questions: [{ question, header: 'Store', options: [], multiSelect: false }], answers: { [question]: 'SQLite' } } });
+  assert.ok(require('../hooks/claude-hooks.json').hooks.PostToolUse.some((g) => /AskUserQuestion/.test(g.matcher)), 'Claude Code wires AskUserQuestion');
 
   const summary = session.buildSessionSummary(id);
   assert.ok(summary.includes("don't use Redis"), 'Should keep the user correction');
@@ -69,6 +82,7 @@ try {
   assert.ok(summary.includes('[in_progress] Add test') && !summary.includes('Write limiter'), 'Only open tasks');
   assert.ok(summary.includes('npm test failed') && !summary.includes('abc123secret'), 'Errors kept, secrets masked');
   assert.ok(!summary.includes('/tails ultra'), 'Mode commands are not memory');
+  assert.ok(summary.includes('Answered "Store": SQLite'), 'AskUserQuestion answer kept as a decision, under its short header');
   const small = session.buildSessionSummary(id, undefined, 400);
   assert.ok(small.length <= 400, 'Budget respected');
   assert.ok(small.includes('Last request:'), 'Header and footer leave room for memory in a small budget');
@@ -176,6 +190,10 @@ try {
     'Recall runs once per session');
   assert.strictEqual(runHook('tails-mode-tracker.js', { session_id: 'sess-recall-off', prompt: 'login rate limiting' },
     { TAILS_RECALL: '0' }), '', 'TAILS_RECALL=0 disables it');
+  assert.strictEqual(runHook('tails-mode-tracker.js', { session_id: 'sess-recall-stray',
+    prompt: 'make the monthly dark mode toggle animate' }), '', 'One incidental shared word ("monthly") is not a match');
+  assert.ok(runHook('tails-mode-tracker.js', { session_id: 'sess-recall-head', prompt: 'explain billing quickly' })
+    .includes('wiki/entities/billing.md'), 'One word naming the section heading still recalls it');
 
   // 11. Host text in the prompt channel: machine turns record nothing, wrapper blocks are dropped
   const mt = 'sess-machine';

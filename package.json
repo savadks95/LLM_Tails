@@ -31,7 +31,7 @@
     "doctor": "node scripts/doctor.js",
     "stats": "node scripts/stats.js",
     "memory": "node scripts/memory.js",
-    "bench:live": "npx promptfoo eval -c benchmarks/live/promptfooconfig.yaml",
+    "bench:live": "npx promptfoo@0.126.0 eval -c benchmarks/live/promptfooconfig.yaml",
     "sync-rules": "node scripts/sync-rules.js",
     "context-lint": "node scripts/context-lint.js"
   },

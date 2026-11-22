@@ -80,13 +80,15 @@ function search(wikiDir, query, { limit = 5 } = {}) {
   return docs
     .map((d) => {
       let score = 0;
+      let matched = 0; // distinct query terms found: BM25 alone ranks one incidental word as a hit
       for (const t of terms) {
         const f = d.tf.get(t);
         if (!f) continue;
+        matched++;
         const idf = Math.log(1 + (docs.length - df.get(t) + 0.5) / (df.get(t) + 0.5));
         score += idf * (f * (K1 + 1)) / (f + K1 * (1 - B + B * d.len / avgLen));
       }
-      return { file: d.chunk.file, heading: d.chunk.heading, score, snippet: snippet(d.chunk.text, terms) };
+      return { file: d.chunk.file, heading: d.chunk.heading, score, matched, snippet: snippet(d.chunk.text, terms) };
     })
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score)
