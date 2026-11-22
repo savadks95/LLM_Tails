@@ -97,7 +97,7 @@ Optional env vars:
 | `TAILS_MEMORY=1` | off | Restore LLM_Tails memory after compaction even when context-mode is detected (it restores its own) |
 | `TAILS_HANDOFF=0` | on | Don't inject `wiki/handoff.md` at session start |
 | `TAILS_HANDOFF_CHARS` | `1500` | Handoff character budget at session start |
-| `TAILS_RECALL=0` | on | Don't inject matching `wiki/` sections on the first real prompt of a session |
+| `TAILS_RECALL=0` | on | Don't inject matching `wiki/` sections on the first real prompt of a session, nor name the wiki pages that list a file in `sources:` on its first edit (that pointer also needs session memory) |
 | `TAILS_RECALL_CHARS` | `1200` | Wiki recall character budget |
 | `ANTHROPIC_API_KEY` | none | Only for `npm run bench:live` (live-model benchmark via promptfoo) |
 | `TAILS_READ_MAX_KB` | `64` | Whole-file read size that triggers the opt-in large-read guard |
