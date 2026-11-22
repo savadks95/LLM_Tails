@@ -176,6 +176,7 @@ Context is a budget. LLM_Tails spends it on understanding, not on raw data:
   | [serena](https://github.com/oraios/serena) | Trace callers and definitions with `find_symbol` / `find_referencing_symbols` instead of grep (Pillar 1) |
   | [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp) | Use `search_graph` → `trace_path` for structure; the LLM_Tails map shrinks to 600 chars |
   | [gortex](https://github.com/zzet/gortex) | Trace callers and blast radius with `search_symbols` / `get_callers` / `find_usages` instead of grep; run `verify_change` before calling a signature change done (Pillar 1) |
+  | [graphify](https://github.com/Graphify-Labs/graphify) | Orient with `graphify query` / `path` / `explain` (MCP: `query_graph`, `get_neighbors`, `shortest_path`) before grep, but still read every file before editing it (its strict hook can deny a Read until the graph is queried; Pillar 1); `INFERRED` / `AMBIGUOUS` edges stay `[likely]` until read (Pillar 3). Detected from its hooks or MCP server; `graphify claude install` alone (a CLAUDE.md section) is not detected |
   | [qmd](https://github.com/tobi/qmd) | Answer wiki questions with `qmd query "<topic>"` (hybrid search) |
   | [caveman](https://github.com/JuliusBrussee/caveman) | Stay terse, but never cut `[verified]`/`[uncertain]` markers, citations or "not verified" |
 
@@ -291,7 +292,7 @@ LLM_Tails works with **Ponytail** — they can coexist. Ponytail governs code mi
 
 It also works with **Caveman** — Caveman shrinks what the agent says, LLM_Tails governs what it builds and how honestly it communicates.
 
-It detects and cooperates with **context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, qmd and caveman** when they are installed alongside: see the companions table in [Context discipline & session memory](#context-discipline--session-memory).
+It detects and cooperates with **context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, graphify, qmd and caveman** when they are installed alongside: see the companions table in [Context discipline & session memory](#context-discipline--session-memory).
 
 ## Acknowledgments & Appreciation
 
@@ -333,7 +334,7 @@ It detects and cooperates with **context-mode, ai-memory, claude-mem, context7, 
 
 - **[promptfoo](https://github.com/promptfoo/promptfoo)** (MIT) — the harness for the live-model benchmark (run through `npx`, not bundled).
 
-- Companions LLM_Tails detects and cooperates with (nothing bundled): **[context7](https://github.com/upstash/context7)**, **[serena](https://github.com/oraios/serena)**, **[claude-mem](https://github.com/thedotmack/claude-mem)**, **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**, **[gortex](https://github.com/zzet/gortex)**, **[qmd](https://github.com/tobi/qmd)**, **[caveman](https://github.com/JuliusBrussee/caveman)**, plus context-mode and ai-memory above.
+- Companions LLM_Tails detects and cooperates with (nothing bundled): **[context7](https://github.com/upstash/context7)**, **[serena](https://github.com/oraios/serena)**, **[claude-mem](https://github.com/thedotmack/claude-mem)**, **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**, **[gortex](https://github.com/zzet/gortex)**, **[graphify](https://github.com/Graphify-Labs/graphify)**, **[qmd](https://github.com/tobi/qmd)**, **[caveman](https://github.com/JuliusBrussee/caveman)**, plus context-mode and ai-memory above.
 
 - **[Winston Koh](https://github.com/winstonkoh87)** for **[Athena-Public](https://github.com/winstonkoh87/Athena-Public)** — the inspiration for the explicit session close (`/tails-end`), the strict state-vs-history split in the wiki, and the "don't agree to please" honesty rule. Independent implementations; no Athena code is used.
 

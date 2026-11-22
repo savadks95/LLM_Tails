@@ -50,7 +50,7 @@ instructions, add its file to `scripts/sync-rules.js` (rendered from `AGENTS.md`
 - `hooks/tails-session.js`: session memory restored after compaction/resume (Claude Code and Codex hooks)
 - `hooks/tails-recall.js`: on the first real prompt of a session, injects the `wiki/` sections that match it (BM25, at most 3, 1,200 chars)
 - `hooks/tails-handoff.js`: injects an open `wiki/handoff.md` (written by `/tails-end`) at a fresh session start; hook-less agents read it via their rules file
-- `hooks/tails-companions.js`: detects context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, qmd and caveman in Claude Code config so LLM_Tails cooperates instead of duplicating them
+- `hooks/tails-companions.js`: detects context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, graphify, qmd and caveman in Claude Code config so LLM_Tails cooperates instead of duplicating them
 - `hooks/tails-guard.js`: opt-in guard patterns (`tails-guard:` lines in AGENTS.md / CLAUDE.md) that ask before a matching command or edit (Claude Code PreToolUse)
 - `hooks/tails-test-check.js`: `ultra` only, sends the agent back once when a turn changed source but no test (Claude Code Stop)
 - `scripts/context-lint.js`: stale paths, line refs and `npm run` scripts in AGENTS.md, CLAUDE.md, rule files and `wiki/`
