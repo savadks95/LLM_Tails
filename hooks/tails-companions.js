@@ -8,6 +8,7 @@
 //   serena (oraios)                   LSP symbol navigation (Pillar 1: trace callers)
 //   codebase-memory-mcp (DeusData)    code graph (replaces most of the codebase map)
 //   gortex (zzet)                     code graph (Pillar 1: callers and blast radius)
+//   graphify (Graphify-Labs)          code graph; its hooks can deny Read until the graph is queried
 //   qmd (tobi)                       hybrid local markdown search (wiki queries)
 //   caveman (JuliusBrussee)           terse prose (LLM_Tails keeps honesty markers)
 // Detection reads Claude Code config only (enabled plugins, MCP servers, hook commands).
@@ -27,6 +28,7 @@ const COMPANIONS = {
   serena: /serena/i,
   'codebase-memory-mcp': /codebase-memory/i,
   gortex: /gortex/i,
+  graphify: /graphify/i, // hook command `<abs path>/graphify hook-guard ...`, or the MCP server
   qmd: /(^|[^a-z])qmd([^a-z]|$)/i,
   caveman: /caveman/i,
 };
@@ -45,6 +47,8 @@ const NOTES = {
     'the LLM_Tails map is trimmed.',
   gortex: 'gortex: trace callers and blast radius with search_symbols / get_callers / find_usages instead of grep; ' +
     'run verify_change before calling a signature change done.',
+  graphify: 'graphify: orient with `graphify query/path/explain` (MCP: query_graph / get_neighbors / shortest_path) ' +
+    'before grep; still Read every file you edit. INFERRED/AMBIGUOUS edges are [likely] until read.',
   qmd: 'qmd: answer wiki questions with `qmd query "<topic>"` (index once: `qmd collection add wiki --name wiki`).',
   caveman: 'caveman: talk tersely, but never cut [verified]/[uncertain] markers, citations, or "not verified".',
 };

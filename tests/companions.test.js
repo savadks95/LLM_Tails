@@ -71,11 +71,16 @@ try {
     graph: { command: 'codebase-memory-mcp' },
     code: { command: 'gortex', args: ['mcp'] },
   } });
-  write(path.join(claude, 'settings.json'), { enabledPlugins: { 'claude-mem@thedotmack': true, 'caveman@caveman': true } });
-  assert.deepStrictEqual(detectCompanions(project), ['claude-mem', 'context7', 'serena', 'codebase-memory-mcp', 'gortex', 'qmd', 'caveman']);
-  const all = ['context-mode', 'ai-memory', 'claude-mem', 'context7', 'serena', 'codebase-memory-mcp', 'gortex', 'qmd', 'caveman'];
+  write(path.join(claude, 'settings.json'), {
+    enabledPlugins: { 'claude-mem@thedotmack': true, 'caveman@caveman': true },
+    // the PreToolUse hook `graphify install` writes (graphify/install.py)
+    hooks: { PreToolUse: [{ matcher: 'Read|Glob', hooks: [{ type: 'command', command: 'C:/tools/graphify.exe hook-guard read' }] }] },
+  });
+  assert.deepStrictEqual(detectCompanions(project), ['claude-mem', 'context7', 'serena', 'codebase-memory-mcp', 'gortex', 'graphify', 'qmd', 'caveman']);
+  const all = ['context-mode', 'ai-memory', 'claude-mem', 'context7', 'serena', 'codebase-memory-mcp', 'gortex', 'graphify', 'qmd', 'caveman'];
   const capped = companionNotes(all);
-  assert.ok(capped.length <= 1100 && capped.includes('Also active: gortex, qmd, caveman'), 'Notes stay inside their budget');
+  assert.ok(capped.length <= 1100 && capped.includes('Also active: gortex, graphify, qmd, caveman'), 'Notes stay inside their budget');
+  assert.ok(companionNotes(['graphify']).includes('still Read every file you edit'));
   assert.ok(!detectCompanions(project).includes('ai-memory'), 'claude-mem is not ai-memory');
   fs.mkdirSync(path.join(project, 'src'), { recursive: true });
   for (let i = 0; i < 40; i++) fs.writeFileSync(path.join(project, 'src', `mod${i}.js`), `export function helperNumber${i}() {}\n`);
