@@ -39,7 +39,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit|NotebookEdit|TodoWrite",
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|TodoWrite|AskUserQuestion",
         "hooks": [
           {
             "type": "command",

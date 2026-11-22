@@ -19,8 +19,11 @@ Health-check the project wiki against the current codebase.
    ```
    It lists stale references in `wiki/` and in the files agents read as truth (`AGENTS.md`,
    `CLAUDE.md`, rule files): backticked paths that no longer exist, `file:L<n>` past the end of
-   the file, `npm run` scripts that are gone. Report each one under **Stale**; then do the
-   judgment checks below, which a script can't.
+   the file, `npm run` scripts that are gone. In `wiki/` it also lists `[[links]]` to no page
+   (report under **Missing pages**), pages whose names differ only in case, separators or a plural
+   (report under **Contradictions** as possible duplicates), and pages whose frontmatter `sources:`
+   file has a git commit after the page's `updated:` date (report under **Stale**). Report each
+   one; then do the judgment checks below, which a script can't.
 
 1. **Stale** — wiki page describes code that has since changed. Compare key
    claims in wiki pages against the actual code they reference.
@@ -41,7 +44,13 @@ Health-check the project wiki against the current codebase.
    wiki coverage at all. Compare the source tree against wiki/entities/.
 
 7. **Index drift** — pages that exist but aren't listed in `wiki/index.md`,
-   or index entries pointing to pages that no longer exist.
+   or index entries pointing to pages that no longer exist. Step 0 lists both.
+
+8. **Redundant with code** — a page whose every claim is restated from code,
+   tests or comments the agent reads anyway: suggest deleting it or cutting it to
+   the reasoning the code cannot carry. Topical overlap is not coverage; check
+   claim by claim. A claim you cannot verify is `[uncertain]`, not stale: flag
+   stale only when the code contradicts it. (After compound-engineering-plugin, MIT.)
 
 ## Output
 

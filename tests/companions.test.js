@@ -88,6 +88,22 @@ try {
   fs.unlinkSync(path.join(project, '.mcp.json'));
   write(path.join(claude, 'settings.json'), {});
 
+  // 3b2. sqz (hook command), MemPalace (plugin), codesight (MCP name), Link (module arg, not the name "link")
+  write(path.join(project, '.mcp.json'), { mcpServers: {
+    link: { command: 'python3', args: ['-m', 'link_mcp', '--surface', 'slim'] },
+    codesight: { command: 'npx', args: ['codesight', '--mcp'] },
+    links: { command: 'node', args: ['bookmarks.js'] },
+  } });
+  write(path.join(claude, 'settings.json'), { enabledPlugins: { 'mempalace@mempalace': true },
+    hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'sqz hook claude' }] }] } });
+  assert.deepStrictEqual(detectCompanions(project), ['sqz', 'mempalace', 'codesight', 'link']);
+  const newNotes = companionNotes(detectCompanions(project));
+  assert.ok(['sqz expand', 'mempalace_search', 'codesight_get_blast_radius', 'lnk recall'].every((s) => newNotes.includes(s)), newNotes);
+  write(path.join(project, '.mcp.json'), { mcpServers: { links: { command: 'node', args: ['bookmarks.js'] } } });
+  write(path.join(claude, 'settings.json'), {});
+  assert.deepStrictEqual(detectCompanions(project), [], 'A server merely named like "link" is not Link');
+  fs.unlinkSync(path.join(project, '.mcp.json'));
+
   // 3c. context7: the admin server has no docs tools; `ctx7 setup --cli` installs only a rule file
   write(path.join(project, '.mcp.json'), { mcpServers: { 'context7-admin': { command: 'npx' } } });
   assert.deepStrictEqual(detectCompanions(project), []);
@@ -108,6 +124,9 @@ try {
   const fresh = runHook('tails-activate.js', { session_id: 'sess-h', source: 'startup' });
   assert.ok(fresh.includes('LLM_TAILS HANDOFF') && fresh.includes('written today'));
   assert.ok(fresh.includes('Wire the limiter') && fresh.includes('Redis: single instance'));
+  const key = 'sk-ant-api03-' + 'Q'.repeat(40);
+  fs.appendFileSync(handoffFile, `Repro: curl -H "x-api-key: ${key}"\n`);
+  assert.ok(!readHandoff(project).includes('QQQQQQQQQQ'), 'A key pasted into the handoff is masked before injection');
   assert.ok(fresh.length <= CONTEXT_LIMIT, `SessionStart context ${fresh.length} exceeds ${CONTEXT_LIMIT}`);
   assert.ok(!runHook('tails-activate.js', { session_id: 'sess-h', source: 'compact' }).includes('HANDOFF'));
   assert.strictEqual(readHandoff(project, 1500, Date.now()).includes('old:'), false);

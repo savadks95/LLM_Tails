@@ -81,7 +81,7 @@ guarded('context budget', () => {
   check('INFO', 'companions', f.companionsFound.length
     ? `${f.companionsFound.join(', ')} detected${f.companionsFound.includes('context-mode') && process.env.TAILS_MEMORY !== '1'
       ? ': LLM_Tails skips its own memory restore after compaction (TAILS_MEMORY=1 keeps both)' : ''}`
-    : 'none (checks: context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, qmd, caveman)');
+    : 'none (checks: context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, qmd, caveman, sqz, mempalace, codesight, link)');
   check('INFO', 'handoff', f.handoff ? `wiki/handoff.md open, ${f.handoff} chars injected at session start`
     : 'no open handoff (written by /tails-end)');
 });

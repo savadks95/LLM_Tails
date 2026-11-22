@@ -45,7 +45,9 @@ Process a new source and integrate its knowledge into the project wiki.
 
 ## Updating a page
 
-- **Update, don't duplicate.** A page or line already covering the same decision, module or entity is edited in place; the source becomes one more citation. Create a page only for what nothing covers.
+- **Update, don't duplicate.** A page or line already covering the same decision, module or entity is edited in place; the source becomes one more citation. Create a page only for what nothing covers: before creating one, search for its title (`node "${CLAUDE_PLUGIN_ROOT}/scripts/wiki-search.js" "<title words>" --limit 5`, or `grep -rli` in `wiki/`). A hit on the same entity under another name (`eori` / `eori-number`) means extend that page. A new page is for a distinct thing you would link to, not an attribute of one.
+- **Durable bar.** Skip a fact the code, its tests or its comments already state plainly: a page that only restates code costs a read and goes stale. Write the why, the constraints and the traps, and point at the code (`file:line`) for the what.
+- **Stamp what you checked.** On every page you edit, set frontmatter `updated:` to today and keep `sources:` listing the code files the page describes, with the content hash printed by `node "${CLAUDE_PLUGIN_ROOT}/scripts/context-lint.js" --hash <files>` (`sources: [src/limiter.js#1a2b3c4d5e6f]`). `context-lint.js` flags the page when a source's content no longer matches (without a hash: when it has a git commit after `updated:`).
 - **One facet per line.** Match on the specific entity or claim, not the broad topic. Names a letter apart (`ledger-sync` / `ledger-sink`) are different things.
 - **Latest wins, by date.** Sources arrive in any order, and an old one ingested today is still old. What is current is decided by when it was true (the source's date, commit date, `Updated:`), never by ingest order. An older source adds history ("was X until 2026-03"); it never overwrites a newer value. Undated and conflicting → flag the contradiction.
 - **Cascade.** A fact that makes other lines wrong updates every page that states the old value.
