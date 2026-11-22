@@ -48,12 +48,13 @@ instructions, add its file to `scripts/sync-rules.js` (rendered from `AGENTS.md`
 - `skills/tails-help/SKILL.md`: quick reference
 - `hooks/tails-map.js`: automated codebase map (zero-dependency regex map of functions, classes, and exports at session start)
 - `hooks/tails-session.js`: session memory restored after compaction/resume (Claude Code and Codex hooks)
-- `hooks/tails-recall.js`: on the first real prompt of a session, injects the `wiki/` sections that match it (BM25, at most 3, 1,200 chars)
-- `hooks/tails-handoff.js`: injects an open `wiki/handoff.md` (written by `/tails-end`) at a fresh session start; hook-less agents read it via their rules file
+- `hooks/tails-recall.js`: on the first real prompt of a session, injects the `wiki/` sections that match it (BM25, at most 3, 1,200 chars; two matched words or one in the heading)
+- `hooks/tails-post-tool.js`: records files changed, open tasks, AskUserQuestion answers and tool errors into session memory; on the first edit of a file a wiki page lists in `sources:`, names that page (Claude Code PostToolUse)
+- `hooks/tails-handoff.js`: injects an open `wiki/handoff.md` (written by `/tails-end`, secrets masked) at a fresh session start; hook-less agents read it via their rules file
 - `hooks/tails-companions.js`: detects context-mode, ai-memory, claude-mem, context7, serena, codebase-memory-mcp, gortex, graphify, qmd, caveman, sqz, MemPalace, codesight and Link in Claude Code config so LLM_Tails cooperates instead of duplicating them
 - `hooks/tails-guard.js`: opt-in guard patterns (`tails-guard:` lines in AGENTS.md / CLAUDE.md) that ask before a matching command or edit (Claude Code PreToolUse)
 - `hooks/tails-test-check.js`: `ultra` only, sends the agent back once when a turn changed source but no test (Claude Code Stop)
-- `scripts/context-lint.js`: stale paths, line refs and `npm run` scripts in AGENTS.md, CLAUDE.md, rule files and `wiki/`; in `wiki/` also broken `[[links]]`, near-duplicate page names, and pages older than their `sources:` files' last commit
+- `scripts/context-lint.js`: stale paths, line refs and `npm run` scripts in AGENTS.md, CLAUDE.md, rule files and `wiki/`; in `wiki/` also broken `[[links]]`, pages missing from `index.md`, near-duplicate page names, orphaned pages, and pages whose `sources:` files changed (content hash, else last git commit); `--hash <files>` prints `sources:` entries
 - `scripts/sync-rules.js`: generates every per-agent rule file from `AGENTS.md` and `rules/compact.md`
 - `hooks/tails-read-guard.js`: opt-in large whole-file read guard (Claude Code PreToolUse, added via settings.json)
 - `scripts/wiki-search.js`: zero-dependency BM25 section search over `wiki/`
